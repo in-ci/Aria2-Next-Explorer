@@ -140,7 +140,11 @@
               <i class="nav-icon fa fa-cogs"></i>
               {{ $t("Download Settings") }}
             </p>
-            <i class="fa right" :class="isAria2MenuOpen ? 'fa-angle-down' : 'fa-angle-left'"></i>
+            <i
+              class="fa right"
+              :class="isAria2MenuOpen ? 'fa-angle-down' : 'fa-angle-right'"
+              style="transform: none !important; -webkit-transform: none !important; transition: transform 0.2s ease;"
+            ></i>
           </a>
           <ul class="nav nav-treeview pl-3" v-show="isAria2MenuOpen">
             <li class="nav-item">
@@ -270,5 +274,5 @@ import { store, currentRpc, rpcList, switchRpcServer } from "../store";
 import { currentRoute } from "../router";
 
 const isRpcDropdownOpen = ref(false);
-const isAria2MenuOpen = ref(true);
+const isAria2MenuOpen = ref(false);
 </script>

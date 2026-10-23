@@ -266,7 +266,7 @@ class Utils {
       type: "basic",
       title: "Title",
       message: "Sample",
-      iconUrl: "images/logo64.png",
+      iconUrl: "/images/logo64.png",
       requireInteraction: false,
     };
     Object.assign(option, content);

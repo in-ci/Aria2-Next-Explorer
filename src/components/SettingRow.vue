@@ -16,11 +16,11 @@
         <select
           v-if="option.type === 'boolean'"
           class="form-control"
-          :value="modelValue === true || modelValue === 'true' ? 'true' : 'false'"
-          @change="$emit('update:modelValue', $event.target.value === 'true')"
+          :value="booleanValue"
+          @change="$emit('update:modelValue', $event.target.value)"
         >
-          <option value="true">{{ $t("True") }}</option>
-          <option value="false">{{ $t("False") }}</option>
+          <option value="true">{{ $t("Enabled") || "true" }}</option>
+          <option value="false">{{ $t("Disabled") || "false" }}</option>
         </select>
 
         <!-- 单选 Option 列表 -->
@@ -32,10 +32,10 @@
         >
           <option
             v-for="item in option.options"
-            :key="item.value"
-            :value="item.value"
+            :key="getOptionValue(item)"
+            :value="getOptionValue(item)"
           >
-            {{ $t(item.name || item.value) }}
+            {{ getOptionLabel(item) }}
           </option>
         </select>
 
@@ -82,11 +82,35 @@
  * SettingRow - 下载设置行组件
  * 严格按照 AdminLTE / AriaNg 规范输出 .row > .setting-key + .setting-value 结构
  */
-defineProps({
+import { computed } from "vue";
+import { t } from "../i18n";
+
+const props = defineProps({
   option: { type: Object, required: true },
   modelValue: { type: [String, Number, Boolean], default: "" },
   defaultValue: { type: [String, Number, Boolean], default: "" },
 });
 
 defineEmits(["update:modelValue"]);
+
+const booleanValue = computed(() => {
+  const val = props.modelValue !== undefined && props.modelValue !== "" ? props.modelValue : props.defaultValue;
+  return val === true || val === "true" ? "true" : "false";
+});
+
+function getOptionValue(item) {
+  if (item === null || item === undefined) return "";
+  if (typeof item === "object") return item.value ?? "";
+  return String(item);
+}
+
+function getOptionLabel(item) {
+  if (item === null || item === undefined) return "";
+  if (typeof item === "object") {
+    const raw = item.name || item.value || "";
+    return t(raw) || raw;
+  }
+  const str = String(item);
+  return t(str) || str;
+}
 </script>

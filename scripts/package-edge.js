@@ -231,7 +231,6 @@ function runPackaging() {
     "manifest.json",
     "acknowledgment.txt",
     "_locales",
-    "images",
     "src",
   ];
 
@@ -258,6 +257,16 @@ function runPackaging() {
       fs.copyFileSync(srcPath, destPath);
     }
     copiedCount++;
+  }
+
+  // 复制静态图标与图片资源至扩展包根目录下的 images/
+  const publicImagesDir = path.join(ROOT_DIR, "src", "public", "images");
+  const destImagesDir = path.join(STAGING_DIR, "images");
+  if (fs.existsSync(publicImagesDir)) {
+    copyDirSync(publicImagesDir, destImagesDir);
+    copiedCount++;
+  } else {
+    console.warn("⚠️ 警告: 未在 src/public/ 下找到 images 目录！");
   }
 
   // 复制已编译好的 Vue 3 WebUI 产物至扩展包中的 webui/ 目录
