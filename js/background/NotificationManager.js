@@ -123,7 +123,7 @@ export class NotificationManager {
         const title = chrome.i18n.getMessage(notificationData.title);
         const message = chrome.i18n.getMessage(
             notificationData.message,
-            source ? source.name : "Aria2"
+            source ? source.name : "Aria2-Next"
         ) + notificationData.sign;
         const silent = config.keepSilent;
 

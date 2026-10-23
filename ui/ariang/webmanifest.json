@@ -1,10 +1,10 @@
 {
-  "name": "Aria2 Explorer",
-  "short_name": "A2E",
+  "name": "Aria2-Next Explorer",
+  "short_name": "A2NE",
   "start_url": "./index.html",
   "display": "standalone",
   "id": "com.aria2e.ui",
-  "description": "A light weight free download solution based on Aria2",
+  "description": "A light weight free download solution based on Aria2-Next",
   "theme_color": "#e5f3ff",
   "background_color": "#3c4751",
   "icons": [

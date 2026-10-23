@@ -264,19 +264,49 @@ class Utils {
     }
 
     /**
-     * Get file name from a url
+     * Get file name from a url (supports HTTP/HTTPS/SFTP, Magnet, and ED2K)
      * @param {string} url 
      * @return {string} filename
      */
     static getFileNameFromUrl(url) {
+        if (!url || typeof url !== 'string') return '';
+
+        // Support ED2K links
+        if (/^ed2k:/i.test(url)) {
+            const match = url.match(/\|file\|([^|]+)\|/i);
+            if (match) {
+                try {
+                    return decodeURIComponent(match[1]);
+                } catch {
+                    return match[1];
+                }
+            }
+            return 'ed2k-download';
+        }
+
+        // Support Magnet links
+        if (/^magnet:/i.test(url)) {
+            try {
+                const params = new URLSearchParams(url.replace(/^magnet:\?/i, ''));
+                const dn = params.get('dn');
+                if (dn) return dn;
+            } catch {}
+            return 'magnet-download';
+        }
+
         try {
-            url = new URL(url);
+            const parsedUrl = new URL(url);
+            if (parsedUrl.pathname.length < 2) return '';
+            let paths = parsedUrl.pathname.split('/');
+            const name = paths[paths.length - 1];
+            try {
+                return decodeURIComponent(name);
+            } catch {
+                return name;
+            }
         } catch (error) {
             return '';
         }
-        if (url.pathname.length < 2) return '';
-        let paths = url.pathname.split('/');
-        return paths[paths.length - 1]
     }
 
     /**

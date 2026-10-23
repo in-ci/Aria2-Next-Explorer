@@ -42,7 +42,8 @@ export class MonitorManager {
                     this.remoteAria2List[i] = new Aria2(remote);
                 }
             } catch (error) {
-                Logger.error('Failed to initialize Aria2 RPC server', error.message);
+                // 初始化 Aria2-Next RPC 服务器连接失败
+                Logger.error('初始化 Aria2-Next RPC 服务器失败:', error.message);
             }
         }
         this.processMessageHandlers(config.allowNotification);
@@ -162,14 +163,14 @@ export class MonitorManager {
     }
 
     /**
-     * Parse monitor error
+     * 解析监控连接错误信息
      */
     #parseMonitorError(error) {
         const msg = error.message?.toLowerCase() || '';
         if (msg.includes('unauthorized')) {
-            return "Secret key is incorrect";
+            return "Secret key 密钥错误";
         } else if (msg.includes("failed to fetch")) {
-            return "Aria2 server is unreachable";
+            return "Aria2-Next 服务器无法连接";
         }
         return '';
     }
@@ -251,8 +252,8 @@ export class MonitorManager {
             bgColor = "#A83030";
             text = 'E';
             title += config.monitorAll
-                ? 'No Aria2 server is reachable.'
-                : `Failed to connect with ${this.remoteAria2List[0].name}. ${errorMessage}.`;
+                ? '所有 Aria2-Next 服务器均无法连接。'
+                : `连接 ${this.remoteAria2List[0].name} 失败: ${errorMessage}。`;
         }
 
         chrome.action.setBadgeTextColor({ color: textColor });

@@ -1,12 +1,12 @@
 {
    "name": "__MSG_appName__",
-   "short_name": "A2E",
+   "short_name": "A2NE",
    "version": "3.0.0",
    "manifest_version": 3,
    "minimum_chrome_version": "116.0.0",
    "default_locale": "en",
    "description": "__MSG_description__",
-   "homepage_url": "https://aria2e.com",
+   "homepage_url": "https://github.com/AnInsomniacy/aria2-next",
    "options_page": "options.html",
    "permissions": [
       "cookies",
@@ -40,7 +40,7 @@
       "default_path": "ui/ariang/index.html"
    },
    "content_security_policy": {
-      "extension_pages": "script-src 'self';object-src 'self';frame-src 'self' aria2://* https://*.aria2e.com/;"
+      "extension_pages": "script-src 'self';object-src 'self';frame-src 'self' aria2://* aria2-next://* https://*.aria2e.com/;"
    },
    "icons": {
       "32": "images/logo32.png",

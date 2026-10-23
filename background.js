@@ -97,7 +97,7 @@ class Application {
         await this.managers.eventHandler.initClickChecker();
 
         this.initialized = true;
-        Logger.log("Aria2 Explorer initialized successfully");
+        Logger.log("Aria2-Next Explorer initialized successfully");
     }
 
     /**
@@ -214,5 +214,5 @@ class Application {
 // Create and initialize application
 const app = new Application();
 app.init().catch(error => {
-    Logger.error("Failed to initialize Aria2 Explorer:", error);
+    Logger.error("Failed to initialize Aria2-Next Explorer:", error);
 });

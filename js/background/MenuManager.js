@@ -373,16 +373,33 @@ export class MenuManager {
     }
 
     /**
-     * Handle export click
+     * 处理右键菜单“导出下载”点击事件
      */
     async #handleExportClick(info, tab) {
         const config = this.configService.get();
         const url = info.linkUrl || info.selectionText;
         const referrer = info.frameUrl || info.pageUrl;
+
+        // 尝试从 Magnet 或 ED2K 链接中解析文件名
+        let filename = '';
+        if (url) {
+            if (/^ed2k:/i.test(url)) {
+                const match = url.match(/\|file\|([^|]+)\|/i);
+                if (match) {
+                    try { filename = decodeURIComponent(match[1]); } catch { filename = match[1]; }
+                }
+            } else if (/^magnet:/i.test(url)) {
+                try {
+                    const params = new URLSearchParams(url.replace(/^magnet:\?/i, ''));
+                    filename = params.get('dn') || '';
+                } catch {}
+            }
+        }
+
         const downloadItem = {
             url,
             referrer,
-            filename: '',
+            filename,
             incognito: tab.incognito
         };
 

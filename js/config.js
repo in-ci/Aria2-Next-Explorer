@@ -9,7 +9,7 @@ export const DefaultAriaNgOptions = {
     browserNotification: false,
     browserNotificationSound: true,
     browserNotificationFrequency: 'unlimited',
-    rpcAlias: 'Aria2',
+    rpcAlias: 'Aria2-Next',
     rpcHost: 'localhost',
     rpcPort: '6800',
     rpcInterface: 'jsonrpc',
@@ -61,7 +61,7 @@ export const DefaultConfigs = {
     keepSilent: false,
     captureMagnet: false,
     remindCaptureTip: true,
-    rpcList: [{ "name": "Aria2", "url": "http://localhost:6800/jsonrpc", "pattern": "" }],
+    rpcList: [{ "name": "Aria2-Next", "url": "http://localhost:6800/jsonrpc", "pattern": "" }],
     webUIOpenStyle: "window",   // window, popup, tab, sidePanel
     uiWindowBounds: null,       // { left, top, width, height } - persisted popup window geometry
     windowBlurClose: false,

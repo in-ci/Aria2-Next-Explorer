@@ -1,8 +1,17 @@
 ACKNOWLEDGEMENT
 
-This extension makes use of the following third party open source project:
+This extension makes use of the following third party open source projects:
+
+Aria2-Next (https://github.com/AnInsomniacy/aria2-next)
+Redefining the next generation of aria2. Modernized download utility supporting HTTP, HTTPS, SFTP, BitTorrent, Metalink, and ED2K.
+Licensed under GPL-2.0 / LGPL-2.1: https://github.com/AnInsomniacy/aria2-next/blob/main/LICENSE.txt
+
+Aria2 (https://github.com/aria2/aria2)
+The original multi-protocol download utility.
+Licensed under GPL-2.0 / LGPL-2.1
 
 AriaNG (https://github.com/mayswind/AriaNg)
+Modern web frontend for Aria2 and Aria2-Next.
 Licensed under MIT License: https://github.com/mayswind/AriaNg/blob/master/LICENSE
 
 Font Awesome Free (https://fontawesome.com/)

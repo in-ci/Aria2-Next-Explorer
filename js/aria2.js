@@ -2,7 +2,7 @@ import Utils from "./utils.js";
 import Logger from "./logger.js";
 
 const SOCKET_TIMEOUT = 8 * 1000;
-const DEFAULT_ARIA2 = { name: "Aria2", rpcUrl: "http://localhost:6800/jsonrpc", secretKey: '' };
+const DEFAULT_ARIA2 = { name: "Aria2-Next", rpcUrl: "http://localhost:6800/jsonrpc", secretKey: '' };
 
 class Aria2 {
     static RequestId = 0;
@@ -45,7 +45,7 @@ class Aria2 {
      * @returns {Aria2} Returns this for chaining
      * @throws {Error} If rpcUrl is invalid
      */
-    setRemote(name = "Aria2", rpcUrl, secretKey = '') {
+    setRemote(name = "Aria2-Next", rpcUrl, secretKey = '') {
         if (rpcUrl === this.rpcUrl && secretKey === this.secretKey)
             return this;
         if (Utils.validateRpcUrl(rpcUrl) === 'INVALID') {

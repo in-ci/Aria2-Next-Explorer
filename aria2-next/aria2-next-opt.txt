@@ -1,0 +1,437 @@
+Usage: aria2-next [OPTIONS] [URI | MAGNET | TORRENT | METALINK | ED2K]...
+
+ -d, --dir=path
+        Directory to store downloaded files.
+        Default: .
+ -o, --out=path
+        File name of the downloaded file, relative to --dir.
+ -i, --input-file=path
+        Read URIs and per-task options from FILE ('-' for stdin).
+ -j, --max-concurrent-downloads=value
+        Maximum number of parallel downloads.
+        Default: 5
+ -c, --continue
+        Continue a partially downloaded file that this engine did not start.
+        Default: false
+ -V, --check-integrity
+        Verify existing data with piece hashes or --checksum.
+        Default: false
+ -l, --log=path
+        Write the log to FILE ('-' for stdout).
+ -q, --quiet
+        Do not print to the console.
+        Default: false
+ -D, --daemon
+        Run in the background. Leave it off under a service manager (systemd, NSSM, WinSW), which tracks the process it started.
+        Default: false
+     --conf-path=path
+        Configuration file (default: $XDG_CONFIG_HOME/aria2/aria2.conf).
+     --no-conf
+        Do not load a configuration file.
+        Default: false
+ -v, --version
+        Print the version and exit.
+        Default: false
+ -h, --help=value
+        Print help for a tag (#basic, #http, #bittorrent, #ed2k, #media, #rpc, #advanced, #all) or a keyword.
+        Default: #basic
+ -s, --split=value
+        Connections used for one download.
+        Default: 16
+ -x, --max-connection-per-server=value
+        Connections to one host for one download.
+        Default: 16
+ -k, --min-split-size=size
+        Smallest range that is split for another connection.
+        Default: 1M
+ -t, --timeout=value
+        Seconds without received data before a connection is retried.
+        Default: 60
+     --connect-timeout=value
+        Seconds allowed for connecting.
+        Default: 60
+ -m, --max-tries=value
+        Consecutive failures without progress before the task fails (0: unlimited).
+        Default: 5
+     --retry-wait=value
+        Seconds to wait before retrying (0: automatic back-off).
+        Default: 0
+     --lowest-speed-limit=size
+        Retry a connection slower than this many bytes/s (0: off).
+        Default: 0
+     --max-download-limit=size
+        Download speed limit per task in bytes/s (0: unlimited).
+        Default: 0
+     --max-overall-download-limit=size
+        Total download speed limit in bytes/s (0: unlimited).
+        Default: 0
+ -U, --user-agent=value
+        User-Agent request header.
+        Default: aria2-next
+     --referer=value
+        Referer request header ('*' uses the download URI).
+     --header=value
+        Additional request header; repeatable.
+     --http-user=value
+        HTTP user name.
+     --http-passwd=value
+        HTTP password.
+     --http-no-cache
+        Send Cache-Control: no-cache.
+        Default: false
+     --http-accept-gzip
+        Accept and decode gzip/deflate responses.
+        Default: true
+     --enable-http-keep-alive
+        Reuse connections.
+        Default: true
+     --load-cookies=path
+        Load cookies from a Netscape/Mozilla text or Firefox/Chrome SQLite file.
+     --save-cookies=path
+        Save cookies to FILE in Netscape format.
+     --check-certificate
+        Verify TLS certificates.
+        Default: true
+     --ca-certificate=path
+        Certificate authorities file (PEM).
+     --certificate=path
+        Client certificate (PEM).
+     --private-key=path
+        Private key for --certificate or SFTP.
+     --min-tls-version=TLSv1.1|TLSv1.2|TLSv1.3
+        Minimum TLS version.
+        Default: TLSv1.2
+     --all-proxy=value
+        Proxy for all protocols: [http://][USER:PASS@]HOST[:PORT], socks5://...
+     --all-proxy-user=value
+        User for --all-proxy.
+     --all-proxy-passwd=value
+        Password for --all-proxy.
+     --http-proxy=value
+        Proxy for HTTP.
+     --http-proxy-user=value
+        User for --http-proxy.
+     --http-proxy-passwd=value
+        Password for --http-proxy.
+     --https-proxy=value
+        Proxy for HTTPS.
+     --https-proxy-user=value
+        User for --https-proxy.
+     --https-proxy-passwd=value
+        Password for --https-proxy.
+     --no-proxy=value
+        Comma-separated hosts, domains, networks or *.globs that bypass the proxy.
+     --dns-over-https=value
+        Resolve host names through this DNS-over-HTTPS URL.
+     --interface=value
+        Bind connections to an interface, IP address or host name.
+     --disable-ipv6
+        Do not use IPv6.
+        Default: false
+     --netrc-path=path
+        netrc file (default: ~/.netrc).
+ -n, --no-netrc
+        Ignore netrc.
+        Default: false
+     --sftp-user=value
+        SFTP user name.
+     --sftp-passwd=value
+        SFTP password.
+     --ssh-host-key-sha256=value
+        Expected base64 SHA-256 fingerprint of the SFTP host key.
+ -R, --remote-time
+        Apply the server's Last-Modified time to the file.
+        Default: false
+     --checksum=value
+        Expected checksum TYPE=DIGEST (sha-1, sha-224, sha-256, sha-384, sha-512, md5).
+     --max-file-not-found=value
+        Fail after this many 404 responses (0: use --max-tries).
+        Default: 0
+     --filename-hint=value
+        Name suggested by the caller.
+     --filename-hint-source=browser|title|suggested
+        Origin of --filename-hint; browser names win over Content-Disposition.
+        Default: suggested
+     --dry-run
+        Check availability without downloading.
+        Default: false
+     --allow-overwrite
+        Restart from scratch when the output file exists.
+        Default: false
+     --auto-file-renaming
+        Use a numbered name when the output file exists.
+        Default: true
+     --incomplete-suffix=value
+        Suffix of unfinished HTTP, FTP and SFTP files, removed when they complete (for example .part).
+     --auto-file-renaming-style=dot|parentheses
+        Numbered names: dot (name.1.ext, as aria2) or parentheses (name (1).ext, as browsers).
+        Default: dot
+ -a, --file-allocation=none|prealloc|falloc|trunc
+        none/trunc: sparse file; prealloc/falloc: reserve its space before downloading.
+        Default: none
+     --remove-control-file
+        Ignore stored progress and start over.
+        Default: false
+     --force-save
+        Save the task in the session even when it is finished.
+        Default: false
+     --save-not-found
+        Save tasks that failed with 404 in the session.
+        Default: true
+ -O, --index-out=value
+        INDEX=PATH output path for a torrent file; repeatable.
+ -T, --torrent-file=path
+        Torrent file to download.
+     --follow-torrent=true|mem|false
+        Start downloaded .torrent files as tasks (mem: without saving them).
+        Default: true
+     --select-file=value
+        Indexes of files to download, e.g. 1-5,8.
+ -S, --show-files
+        Print the files of a torrent or metalink and exit.
+        Default: false
+     --pause-metadata
+        Pause magnet tasks after metadata until files are selected.
+        Default: false
+     --listen-port=value
+        Port for TCP and uTP peers.
+        Default: 6881
+     --enable-dht
+        Use the DHT.
+        Default: true
+     --enable-peer-exchange
+        Use peer exchange.
+        Default: true
+     --bt-enable-lpd
+        Use local peer discovery.
+        Default: true
+     --bt-port-mapping
+        Map listening ports with UPnP and NAT-PMP.
+        Default: true
+     --bt-encryption=preferred|required|disabled
+        Peer encryption policy.
+        Default: preferred
+     --bt-transport=tcp|utp|both
+        Peer transports.
+        Default: both
+     --bt-tracker=value
+        Additional comma-separated tracker URIs.
+     --bt-exclude-tracker=value
+        Comma-separated tracker URIs to remove, or *.
+     --bt-max-peers=value
+        Peer connections per torrent (0: unlimited).
+        Default: 100
+     --bt-max-connections=value
+        Peer connections in total.
+        Default: 500
+     --bt-max-uploads=value
+        Upload slots in total.
+        Default: 20
+     --bt-max-uploads-per-torrent=value
+        Upload slots per torrent.
+        Default: 4
+ -u, --max-upload-limit=size
+        Upload speed limit per task in bytes/s (0: unlimited).
+        Default: 0
+     --max-overall-upload-limit=size
+        Total upload speed limit in bytes/s (0: unlimited).
+        Default: 0
+     --seed-ratio=value
+        Stop seeding at this share ratio (0: no ratio limit).
+        Default: 1.0
+     --seed-time=value
+        Stop seeding after this many minutes.
+     --bt-seed-unverified
+        Seed existing files without hash checking.
+        Default: false
+     --bt-super-seeding
+        Use super seeding.
+        Default: false
+     --bt-first-last-piece-first
+        Download the first and last piece of each file first.
+        Default: false
+     --bt-file-priority=value
+        INDEX=off|normal|high|top,... file priorities.
+ -Z, --force-sequential
+        Command line: one task per URI. BitTorrent: download pieces in order.
+        Default: false
+     --hash-check-only
+        Check data and stop.
+        Default: false
+     --detach-share-only
+        Seeding does not count toward --max-concurrent-downloads.
+        Default: false
+     --bt-external-ip=value
+        External IP address reported to trackers.
+     --bt-external-port=value
+        External port reported to trackers (0: listening port).
+        Default: 0
+     --bt-interface=value
+        Comma-separated interfaces or addresses for peers.
+     --bt-proxy=value
+        Proxy for peers and trackers: http://, socks4://, socks5://.
+     --bt-anonymous-mode
+        Hide client identity from peers and trackers.
+        Default: false
+     --bt-user-agent=value
+        User agent sent to trackers.
+        Default: qBittorrent/5.2.3
+     --bt-peer-id-prefix=value
+        Peer ID prefix.
+        Default: -qB5230-
+     --bt-peer-blocklist=path
+        Blocklist of peer IP ranges (eMule DAT, P2P or CIDR).
+     --bt-blocklist-scope=peers|peers-and-trackers|all
+        Connections checked against the blocklist.
+        Default: peers
+     --bt-rate-limit-overhead
+        Count protocol overhead against speed limits.
+        Default: false
+     --bt-dht-bootstrap-nodes=value
+        DHT bootstrap nodes.
+        Default: dht.libtorrent.org:25401,dht.transmissionbt.com:6881,router.bittorrent.com:6881,router.utorrent.com:6881
+ -M, --metalink-file=path
+        Metalink file to download.
+     --follow-metalink=true|mem|false
+        Start downloaded .metalink files as tasks.
+        Default: true
+     --ed2k-server=value
+        Comma-separated HOST:PORT servers.
+     --ed2k-server-list=path
+        server.met file or a list of HOST:PORT lines.
+     --ed2k-node-list=path
+        nodes.dat file to bootstrap Kad.
+     --ed2k-listen-port=value
+        TCP port for clients (0: any).
+        Default: 4662
+     --ed2k-udp-listen-port=value
+        UDP port for Kad and clients (0: any).
+        Default: 4672
+     --ed2k-port-mapping
+        Forward the ED2K ports with UPnP.
+        Default: true
+     --ed2k-upload-slots=value
+        Upload slots in total.
+        Default: 3
+     --ed2k-max-connections=value
+        Client connections in total.
+        Default: 100
+     --ed2k-preview-priority
+        Download the first and last parts first.
+        Default: false
+     --media=auto|file|hls|dash|collection
+        auto detects HLS/DASH; file downloads the raw resource.
+        Default: auto
+     --media-format=mp4|mkv|vtt
+        Output container.
+        Default: mp4
+     --media-video=value
+        Video track: best, none, a language or a track ID from media.tracks.
+        Default: best
+     --media-audio=value
+        Audio track: best, none, a language or a track ID from media.tracks.
+        Default: best
+     --media-subtitles=value
+        Subtitle tracks: best, none, a language or a track ID from media.tracks.
+        Default: none
+     --media-pause-after-probe
+        Pause after the presentation is read so tracks can be chosen.
+        Default: false
+     --media-record-time=value
+        Stop a live recording after this many seconds (0: until the end).
+        Default: 0
+     --media-start-time=value
+        Start of the downloaded range in seconds (0: the beginning).
+        Default: 0
+     --media-end-time=value
+        End of the downloaded range in seconds (0: the end).
+        Default: 0
+     --media-request-contexts=value
+        JSON request headers per origin.
+     --media-input=value
+        JSON manifests captured by the browser.
+     --enable-rpc
+        Start the JSON-RPC server.
+        Default: false
+     --rpc-listen-port=value
+        RPC port.
+        Default: 6800
+     --rpc-listen-all
+        Listen on all interfaces instead of loopback.
+        Default: false
+     --rpc-allow-origin-all
+        Send Access-Control-Allow-Origin: *.
+        Default: false
+     --rpc-secret=value
+        RPC token secret.
+     --rpc-max-request-size=size
+        Largest accepted request.
+        Default: 2M
+     --rpc-save-upload-metadata
+        Keep torrents and metalinks added over RPC for the session.
+        Default: true
+     --pause
+        Add the task paused.
+        Default: false
+     --gid=value
+        GID of the new task (16 hex digits).
+     --state-dir=path
+        Directory for resume data and engine state.
+     --save-session=path
+        Write unfinished tasks to FILE on exit.
+     --save-session-interval=value
+        Also write the session every SEC seconds (0: only on exit).
+        Default: 0
+     --state-save-interval=value
+        Checkpoint resume data every SEC seconds.
+        Default: 10
+     --max-download-result=value
+        Finished tasks kept in memory.
+        Default: 1000
+     --keep-unfinished-download-result
+        Keep unfinished results even beyond --max-download-result.
+        Default: true
+     --stop=value
+        Exit after SEC seconds (0: never).
+        Default: 0
+     --stop-with-process=value
+        Exit when process PID ends.
+        Default: 0
+     --summary-interval=value
+        Seconds between progress summaries (0: off).
+        Default: 60
+     --show-console-readout
+        Show the progress line.
+        Default: true
+     --enable-color
+        Use colors on the console.
+        Default: true
+     --download-result=default|full|hide
+        Results table printed on exit: default, full (each file with its progress) or hide.
+        Default: default
+     --log-level=debug|info|notice|warn|error
+        File log level.
+        Default: debug
+     --console-log-level=debug|info|notice|warn|error
+        Console log level.
+        Default: notice
+     --log-max-size=size
+        Rotate the log at this size.
+        Default: 10M
+     --log-max-files=value
+        Log files kept, including the active one.
+        Default: 4
+     --on-download-start=path
+        Command run when a download starts.
+     --on-download-pause=path
+        Command run when a download pauses.
+     --on-download-stop=path
+        Command run when a download stops for any reason.
+     --on-download-complete=path
+        Command run when a download completes.
+     --on-download-error=path
+        Command run when a download fails.
+     --on-bt-download-complete=path
+        Command run when a torrent finishes downloading (before seeding ends).
+
+Tags: #basic #http #file #bittorrent #metalink #ed2k #media #rpc #advanced #all
