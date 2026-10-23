@@ -31,56 +31,70 @@
         </li>
       </ul>
 
-      <div class="tab-content no-padding p-3">
+      <div class="tab-content no-padding">
         <!-- 1. 全局偏好设置 (Global) -->
         <div v-show="currentTab === 'global'" class="tab-pane active">
           <div class="settings-table striped hoverable">
             <!-- 语言设置 (仅保留简体中文和英文) -->
-            <div class="row align-items-center mb-3">
-              <div class="setting-key col-sm-4 font-weight-bold">{{ $t("Language") }}</div>
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Language") }}</span>
+              </div>
               <div class="setting-value col-sm-8">
-                <select class="form-control" v-model="selectedLanguage" @change="onLanguageChange">
-                  <option value="zh_CN">简体中文 (Simplified Chinese)</option>
-                  <option value="en">English (English)</option>
-                </select>
+                <div class="form-group mb-0">
+                  <select class="form-control" v-model="selectedLanguage" @change="onLanguageChange">
+                    <option value="zh_CN">简体中文 (Simplified Chinese)</option>
+                    <option value="en">English (English)</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             <!-- 主题设置 -->
-            <div class="row align-items-center mb-3">
-              <div class="setting-key col-sm-4 font-weight-bold">{{ $t("Theme") }}</div>
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Theme") }}</span>
+              </div>
               <div class="setting-value col-sm-8">
-                <select class="form-control" v-model="selectedTheme" @change="onThemeChange">
-                  <option value="system">{{ $t("Follow system settings") }}</option>
-                  <option value="dark">{{ $t("Dark") }}</option>
-                  <option value="default">{{ $t("Classic") }}</option>
-                </select>
+                <div class="form-group mb-0">
+                  <select class="form-control" v-model="selectedTheme" @change="onThemeChange">
+                    <option value="system">{{ $t("Follow system settings") }}</option>
+                    <option value="dark">{{ $t("Dark") }}</option>
+                    <option value="default">{{ $t("Classic") }}</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             <!-- 刷新间隔 -->
-            <div class="row align-items-center mb-3">
-              <div class="setting-key col-sm-4 font-weight-bold">
-                {{ $t("Updating Task Information Interval") }}
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Updating Task Information Interval") }}</span>
               </div>
               <div class="setting-value col-sm-8">
-                <select class="form-control" v-model="refreshInterval" @change="onIntervalChange">
-                  <option :value="1000">1000 ms (1s)</option>
-                  <option :value="2000">2000 ms (2s)</option>
-                  <option :value="3000">3000 ms (3s)</option>
-                  <option :value="5000">5000 ms (5s)</option>
-                </select>
+                <div class="form-group mb-0">
+                  <select class="form-control" v-model="refreshInterval" @change="onIntervalChange">
+                    <option :value="1000">1000 ms (1s)</option>
+                    <option :value="2000">2000 ms (2s)</option>
+                    <option :value="3000">3000 ms (3s)</option>
+                    <option :value="5000">5000 ms (5s)</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             <!-- 紧凑模式 -->
-            <div class="row align-items-center mb-3">
-              <div class="setting-key col-sm-4 font-weight-bold">{{ $t("Compact Mode") }}</div>
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Compact Mode") }}</span>
+              </div>
               <div class="setting-value col-sm-8">
-                <select class="form-control" v-model="store.compactMode" @change="saveSettings">
-                  <option :value="true">{{ $t("Enabled") }}</option>
-                  <option :value="false">{{ $t("Disabled") }}</option>
-                </select>
+                <div class="form-group mb-0">
+                  <select class="form-control" v-model="store.compactMode" @change="saveSettings">
+                    <option :value="true">{{ $t("Enabled") }}</option>
+                    <option :value="false">{{ $t("Disabled") }}</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -95,61 +109,73 @@
         >
           <div class="settings-table striped hoverable">
             <!-- 别名 -->
-            <div class="row align-items-center mb-3">
-              <div class="setting-key col-sm-4 font-weight-bold">{{ $t("Aria2 RPC Alias") }}</div>
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Aria2 RPC Alias") }}</span>
+              </div>
               <div class="setting-value col-sm-8">
-                <input class="form-control" type="text" v-model="server.rpcAlias" @change="saveRpcSettings" />
+                <div class="form-group mb-0">
+                  <input class="form-control" type="text" v-model="server.rpcAlias" @change="saveRpcSettings" />
+                </div>
               </div>
             </div>
 
             <!-- 地址信息 -->
-            <div class="row align-items-center mb-3">
-              <div class="setting-key col-sm-4 font-weight-bold">{{ $t("Aria2 RPC Address") }}</div>
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Aria2 RPC Address") }}</span>
+              </div>
               <div class="setting-value col-sm-8">
-                <div class="input-group">
-                  <select class="custom-select" style="max-width: 110px;" v-model="server.protocol" @change="saveRpcSettings">
-                    <option value="http">http://</option>
-                    <option value="https">https://</option>
-                    <option value="ws">ws://</option>
-                    <option value="wss">wss://</option>
-                  </select>
-                  <input class="form-control" type="text" placeholder="localhost" v-model="server.rpcHost" @change="saveRpcSettings" />
-                  <div class="input-group-append">
-                    <span class="input-group-text">:</span>
+                <div class="form-group mb-0">
+                  <div class="input-group">
+                    <select class="custom-select" style="max-width: 110px;" v-model="server.protocol" @change="saveRpcSettings">
+                      <option value="http">http://</option>
+                      <option value="https">https://</option>
+                      <option value="ws">ws://</option>
+                      <option value="wss">wss://</option>
+                    </select>
+                    <input class="form-control" type="text" placeholder="localhost" v-model="server.rpcHost" @change="saveRpcSettings" />
+                    <div class="input-group-append">
+                      <span class="input-group-text">:</span>
+                    </div>
+                    <input class="form-control" style="max-width: 90px;" type="text" placeholder="6800" v-model="server.rpcPort" @change="saveRpcSettings" />
+                    <div class="input-group-append">
+                      <span class="input-group-text">/</span>
+                    </div>
+                    <input class="form-control" style="max-width: 120px;" type="text" placeholder="jsonrpc" v-model="server.rpcInterface" @change="saveRpcSettings" />
                   </div>
-                  <input class="form-control" style="max-width: 90px;" type="text" placeholder="6800" v-model="server.rpcPort" @change="saveRpcSettings" />
-                  <div class="input-group-append">
-                    <span class="input-group-text">/</span>
-                  </div>
-                  <input class="form-control" style="max-width: 120px;" type="text" placeholder="jsonrpc" v-model="server.rpcInterface" @change="saveRpcSettings" />
                 </div>
               </div>
             </div>
 
             <!-- 密钥令牌 (Secret) -->
-            <div class="row align-items-center mb-3">
-              <div class="setting-key col-sm-4 font-weight-bold">{{ $t("Aria2 RPC Secret Token") }}</div>
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Aria2 RPC Secret Token") }}</span>
+              </div>
               <div class="setting-value col-sm-8">
-                <div class="input-group">
-                  <input
-                    class="form-control"
-                    :type="showSecret ? 'text' : 'password'"
-                    placeholder="rpc-secret"
-                    v-model="server.secret"
-                    @change="saveRpcSettings"
-                  />
-                  <div class="input-group-append">
-                    <button class="btn btn-outline-secondary" type="button" @click="showSecret = !showSecret">
-                      <i :class="['fa', showSecret ? 'fa-eye-slash' : 'fa-eye']"></i>
-                    </button>
+                <div class="form-group mb-0">
+                  <div class="input-group">
+                    <input
+                      class="form-control"
+                      :type="showSecret ? 'text' : 'password'"
+                      placeholder="rpc-secret"
+                      v-model="server.secret"
+                      @change="saveRpcSettings"
+                    />
+                    <div class="input-group-append">
+                      <button class="btn btn-outline-secondary" type="button" @click="showSecret = !showSecret">
+                        <i :class="['fa', showSecret ? 'fa-eye-slash' : 'fa-eye']"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- 激活按钮 -->
-            <div class="row pt-3 border-top">
-              <div class="col-sm-12 text-right">
+            <div class="row">
+              <div class="col-sm-12 text-right py-2">
                 <button
                   class="btn btn-success btn-sm"
                   :disabled="store.activeRpcIndex === sIdx"
