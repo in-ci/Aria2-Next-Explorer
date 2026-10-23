@@ -14,6 +14,9 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 const { ZipArchive } = require("archiver");
+const terser = require("terser");
+const esbuild = require("esbuild");
+const { minify: htmlMinify } = require("html-minifier-terser");
 
 // 项目根目录
 const ROOT_DIR = path.resolve(__dirname, "..");
@@ -54,6 +57,92 @@ function createHighCompressionZip(sourceDir, destPath) {
     archive.directory(sourceDir, false);
     archive.finalize().catch(reject);
   });
+}
+
+/**
+ * 递归深度压缩与单行化暂存区中的所有 JS / CSS / HTML / JSON 文件
+ * @param {string} dir 目录路径
+ */
+async function minifyStagingDirectory(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      await minifyStagingDirectory(fullPath);
+      continue;
+    }
+
+    if (!entry.isFile()) continue;
+
+    const ext = path.extname(entry.name).toLowerCase();
+
+    // 1. JavaScript 混淆压缩 (短变量名、剔除注释与全部多余空格，压缩至单行)
+    if (ext === ".js") {
+      const raw = fs.readFileSync(fullPath, "utf8");
+      try {
+        const minified = await terser.minify(raw, {
+          module: true,
+          compress: {
+            passes: 2,
+            drop_console: false,
+            unsafe: false,
+          },
+          mangle: {
+            toplevel: true,
+          },
+          format: {
+            comments: false,
+            max_line_len: 0,
+          },
+        });
+        if (minified.code) {
+          fs.writeFileSync(fullPath, minified.code, "utf8");
+        }
+      } catch (err) {
+        // 若 Terser 因特定顶层语法回退，使用 esbuild 极速混淆
+        const esRes = esbuild.transformSync(raw, {
+          minify: true,
+          target: "es2022",
+        });
+        fs.writeFileSync(fullPath, esRes.code.trim(), "utf8");
+      }
+    }
+    // 2. CSS 样式单行化压缩
+    else if (ext === ".css") {
+      const raw = fs.readFileSync(fullPath, "utf8");
+      const esRes = esbuild.transformSync(raw, {
+        loader: "css",
+        minify: true,
+      });
+      fs.writeFileSync(fullPath, esRes.code.trim(), "utf8");
+    }
+    // 3. HTML 页面压缩 (清除空白、注释与内联属性冗余)
+    else if (ext === ".html") {
+      const raw = fs.readFileSync(fullPath, "utf8");
+      const minHtml = await htmlMinify(raw, {
+        collapseWhitespace: true,
+        removeComments: true,
+        removeRedundantAttributes: true,
+        removeScriptTypeAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        minifyCSS: true,
+        minifyJS: true,
+      });
+      fs.writeFileSync(fullPath, minHtml.trim(), "utf8");
+    }
+    // 4. JSON 数据单行化压缩
+    else if (ext === ".json") {
+      const raw = fs.readFileSync(fullPath, "utf8");
+      try {
+        const parsed = JSON.parse(raw);
+        fs.writeFileSync(fullPath, JSON.stringify(parsed), "utf8");
+      } catch (e) {
+        // 保持原样
+      }
+    }
+  }
 }
 
 /**
@@ -323,6 +412,11 @@ async function runPackaging() {
   }
 
   console.log(`✅ 已复制 ${copiedCount} 个顶级资源模块。`);
+
+  // 4.5 全量文件深度单行化压缩与混淆 (剔除注释、多余空格，混淆字段与函数名)
+  console.log("⚡ 正在执行全量文件深度混淆与极致单行化压缩 (JS/CSS/HTML/JSON)...");
+  await minifyStagingDirectory(STAGING_DIR);
+  console.log("✅ 全量代码单行化与混淆压缩完成！");
 
   // 5. 校验暂存区中所有关键 JS 文件的语法
   console.log("🔍 正在对打包包内的 JavaScript 文件进行语法完整性校验...");
