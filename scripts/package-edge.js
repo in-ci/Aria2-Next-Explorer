@@ -35,7 +35,10 @@ function copyDirSync(src, dest, excludes = []) {
   const entries = fs.readdirSync(src, { withFileTypes: true });
 
   for (const entry of entries) {
-    if (excludes.includes(entry.name)) {
+    if (
+      excludes.includes(entry.name) ||
+      excludes.some((ex) => ex.startsWith("*") && entry.name.endsWith(ex.slice(1)))
+    ) {
       continue;
     }
 
@@ -246,9 +249,9 @@ function runPackaging() {
 
     const stat = fs.statSync(srcPath);
     if (stat.isDirectory()) {
-      // 复制 src 目录时排除未编译的 webui 源码目录，运行时直接使用 dist/webui 编译产物
+      // 复制 src 目录时排除开发期 Vue 源码，运行时直接使用 dist/webui 编译产物
       const excludes = entryName === "src" 
-        ? ["webui", ".git", ".DS_Store", "Thumbs.db"]
+        ? ["components", "views", "public", "store", "router", "i18n", "*.vue", "App.vue", "main.js", "index.html", ".git", ".DS_Store", "Thumbs.db"]
         : [".git", ".DS_Store", "Thumbs.db"];
       copyDirSync(srcPath, destPath, excludes);
     } else if (stat.isFile()) {

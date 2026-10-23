@@ -7,8 +7,8 @@
  * ==============================================================================
  */
 
-import "../../css/plugins-156783225a.min.css";
-import "../../css/aria-ng-a896d84fcf.min.css";
+import "./css/plugins-156783225a.min.css";
+import "./css/aria-ng-a896d84fcf.min.css";
 
 import { createApp } from "vue";
 import App from "./App.vue";
