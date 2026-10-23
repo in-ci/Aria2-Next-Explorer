@@ -278,7 +278,7 @@
         <div class="brand-link">
           <img
             src="favicon.png"
-            ng-src="{{serverType === 'streamd' ? 'streamd.png' : 'aria2.png'}}"
+            src="aria2.png"
             alt="Aria2"
             class="brand-image"
           />
@@ -380,7 +380,7 @@
                 <li class="nav-item">
                   <a
                     class="nav-link"
-                    ng-href="#!/settings/{{serverType || 'aria2'}}/basic"
+                    href="#!/settings/aria2/basic"
                     title="{{'Basic Settings' | translate}}"
                     ><i class="fa fa-angle-right nav-icon"></i>
                     <p translate>Basic Settings</p></a
@@ -389,13 +389,13 @@
                 <li class="nav-item">
                   <a
                     class="nav-link"
-                    ng-href="#!/settings/{{serverType || 'aria2'}}/http"
+                    href="#!/settings/aria2/http"
                     title="{{'HTTP Settings' | translate}}"
                     ><i class="fa fa-angle-right nav-icon"></i>
                     <p translate>HTTP Settings</p></a
                   >
                 </li>
-                <li class="nav-item" ng-if="serverType === 'aria2'">
+                <li class="nav-item">
                   <a
                     class="nav-link"
                     href="#!/settings/aria2/sftp"
@@ -404,7 +404,7 @@
                     <p translate>SFTP Settings</p></a
                   >
                 </li>
-                <li class="nav-item" ng-if="serverType === 'aria2'">
+                <li class="nav-item">
                   <a
                     class="nav-link"
                     href="#!/settings/aria2/bt"
@@ -413,7 +413,7 @@
                     <p translate>BitTorrent Settings</p></a
                   >
                 </li>
-                <li class="nav-item" ng-if="serverType === 'aria2'">
+                <li class="nav-item">
                   <a
                     class="nav-link"
                     href="#!/settings/aria2/ed2k"
@@ -422,7 +422,7 @@
                     <p translate>ED2K Settings</p></a
                   >
                 </li>
-                <li class="nav-item" ng-if="serverType === 'aria2'">
+                <li class="nav-item">
                   <a
                     class="nav-link"
                     href="#!/settings/aria2/media"
@@ -431,7 +431,7 @@
                     <p translate>Media Stream Settings</p></a
                   >
                 </li>
-                <li class="nav-item" ng-if="serverType === 'aria2'">
+                <li class="nav-item">
                   <a
                     class="nav-link"
                     href="#!/settings/aria2/metalink"
@@ -440,7 +440,7 @@
                     <p translate>Metalink Settings</p></a
                   >
                 </li>
-                <li class="nav-item" ng-if="serverType === 'aria2'">
+                <li class="nav-item">
                   <a
                     class="nav-link"
                     href="#!/settings/aria2/rpc"
@@ -452,7 +452,7 @@
                 <li class="nav-item">
                   <a
                     class="nav-link"
-                    ng-href="#!/settings/{{serverType || 'aria2'}}/advanced"
+                    href="#!/settings/aria2/advanced"
                     title="{{'Advanced Settings' | translate}}"
                     ><i class="fa fa-angle-right nav-icon"></i>
                     <p translate>Advanced Settings</p></a
@@ -485,22 +485,6 @@
                   ></span></p
               ></a>
             </li>
-            <li class="nav-header bg-gray-dark-blur ng-scope" translate>
-              Communications
-            </li>
-            <li class="nav-item" data-href-match="/recommend">
-              <a
-                class="nav-link"
-                href="#!/recommend"
-                ng-click="updateRecCount()"
-                ><i class="nav-icon fa fa-hand-spock-o"></i>
-                <p translate>Official Blog</p>
-                <i
-                  class="badge-dot text-warning fa fa-circle ng-hide"
-                  ng-show="hasNewRec"
-                ></i
-              ></a>
-            </li>
           </ul>
         </section>
       </aside>
@@ -528,13 +512,10 @@
                 ></a>
               </li>
               <li class="nav-item divider"></li>
-              <li
-                ng-class="{'disabled': serverType !== 'aria2'}"
-                title="{{(serverType !== 'aria2' ? 'N/A' : '') | translate}}"
-              >
+              <li>
                 <a
                   class="dropdown-item pointer-cursor"
-                  ng-click="serverType === 'aria2' && showQuickSettingDialog('globalSpeedLimit', 'Global Rate Limit')"
+                  ng-click="showQuickSettingDialog('globalSpeedLimit', 'Global Rate Limit')"
                   ><i class="fa fa-sliders fa-fw"></i>
                   <span translate>Global Rate Limit</span></a
                 >
