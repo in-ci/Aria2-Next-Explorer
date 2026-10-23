@@ -3,7 +3,7 @@
  * 高性能原生 HTML5 Canvas 实时速度曲线微图表
  * ==============================================================================
  * 彻底替换 1MB 的 Apache ECharts 运行时！
- * 纯原生 Canvas 2D 渲染，零外部依赖，常驻内存小于 0.1MB，支持暗色/亮色自适应与视网膜高分屏。
+ * 纯原生 Canvas 2D 渲染，零外部依赖，常驻内存极小，支持暗色/亮色自适应与视网膜高分屏。
  * ==============================================================================
  */
 
@@ -19,7 +19,7 @@ export class SpeedCanvasChart {
     this.ctx = canvas.getContext("2d");
     this.history = []; // [{ down: number, up: number, time: number }]
     this.maxPoints = options.maxPoints || 60; // 默认保留 60 秒历史
-    this.isDark = options.isDark ?? true;
+    this.isDark = options.isDark ?? false;
     this.hoverIndex = -1;
 
     this._initEvents();
@@ -27,6 +27,11 @@ export class SpeedCanvasChart {
 
   setTheme(isDark) {
     this.isDark = isDark;
+    this.render();
+  }
+
+  setHistory(historyData) {
+    this.history = Array.isArray(historyData) ? [...historyData] : [];
     this.render();
   }
 
@@ -57,7 +62,7 @@ export class SpeedCanvasChart {
       const count = this.history.length;
       if (count < 2) return;
 
-      const paddingLeft = 45;
+      const paddingLeft = 60;
       const paddingRight = 15;
       const chartWidth = rect.width - paddingLeft - paddingRight;
 
@@ -82,24 +87,26 @@ export class SpeedCanvasChart {
     // 高分屏缩放适配
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
+    const width = rect.width > 0 ? rect.width : (canvas.clientWidth || 320);
+    const height = rect.height > 0 ? rect.height : (canvas.clientHeight || 165);
 
-    if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+    const displayW = Math.round(width * dpr);
+    const displayH = Math.round(height * dpr);
+
+    if (canvas.width !== displayW || canvas.height !== displayH) {
+      canvas.width = displayW;
+      canvas.height = displayH;
     }
 
     ctx.save();
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, width, height);
 
-    const padding = { top: 20, right: 15, bottom: 25, left: 55 };
+    const padding = { top: 15, right: 15, bottom: 25, left: 60 };
     const chartW = width - padding.left - padding.right;
     const chartH = height - padding.top - padding.bottom;
 
-    if (this.history.length < 2) {
-      // 数据不足时显示占位文本
+    if (this.history.length === 0) {
       ctx.fillStyle = this.isDark ? "#888" : "#999";
       ctx.font = "12px sans-serif";
       ctx.textAlign = "center";
@@ -117,7 +124,7 @@ export class SpeedCanvasChart {
     maxSpeed *= 1.15; // 增加 15% 顶部空间
 
     // 绘制横向网格参考线
-    ctx.strokeStyle = this.isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+    ctx.strokeStyle = this.isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
     ctx.lineWidth = 1;
     const gridLines = 4;
     ctx.fillStyle = this.isDark ? "#9aa0a6" : "#6c757d";
@@ -140,13 +147,15 @@ export class SpeedCanvasChart {
       const pts = [];
       const count = this.history.length;
       for (let i = 0; i < count; i++) {
-        const x = padding.left + (chartW / (count - 1)) * i;
+        const x = count > 1
+          ? padding.left + (chartW / (count - 1)) * i
+          : padding.left;
         const val = this.history[i][key];
         const y = padding.top + chartH - (val / maxSpeed) * chartH;
         pts.push({ x, y });
       }
 
-      if (pts.length < 2) return;
+      if (pts.length === 0) return [];
 
       // 渐变填充背景
       ctx.beginPath();
@@ -176,13 +185,18 @@ export class SpeedCanvasChart {
       return pts;
     };
 
-    // 下载: 绿色/青色 (#00bc8c / #28a745)
-    const downPts = drawSeries("down", "#20c997", "rgba(32, 201, 151, 0.25)");
-    // 上传: 蓝色 (#007bff / #339af0)
-    const upPts = drawSeries("up", "#339af0", "rgba(51, 154, 240, 0.2)");
+    // 下载: 绿色 (#28a745 / #20c997)
+    const downColor = this.isDark ? "#20c997" : "#28a745";
+    const downFill = this.isDark ? "rgba(32, 201, 151, 0.22)" : "rgba(40, 167, 69, 0.15)";
+    const downPts = drawSeries("down", downColor, downFill);
+
+    // 上传: 蓝色 (#007bff / #38bdf8)
+    const upColor = this.isDark ? "#38bdf8" : "#007bff";
+    const upFill = this.isDark ? "rgba(56, 189, 248, 0.2)" : "rgba(0, 123, 255, 0.15)";
+    const upPts = drawSeries("up", upColor, upFill);
 
     // 绘制悬停指示标尺与 Tooltip
-    if (this.hoverIndex >= 0 && this.hoverIndex < this.history.length) {
+    if (this.hoverIndex >= 0 && this.hoverIndex < this.history.length && downPts.length > this.hoverIndex) {
       const idx = this.hoverIndex;
       const ptDown = downPts[idx];
       const ptUp = upPts[idx];
@@ -207,8 +221,8 @@ export class SpeedCanvasChart {
         ctx.stroke();
       };
 
-      drawDot(ptDown, "#20c997");
-      drawDot(ptUp, "#339af0");
+      drawDot(ptDown, downColor);
+      drawDot(ptUp, upColor);
 
       // 浮层信息框
       const curData = this.history[idx];
@@ -219,21 +233,25 @@ export class SpeedCanvasChart {
       const tipH = 46;
       let tipX = x + 10;
       if (tipX + tipW > width - padding.right) tipX = x - tipW - 10;
-      const tipY = padding.top + 10;
+      const tipY = padding.top + 8;
 
-      ctx.fillStyle = this.isDark ? "rgba(30, 30, 30, 0.9)" : "rgba(255, 255, 255, 0.95)";
-      ctx.strokeStyle = this.isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)";
+      ctx.fillStyle = this.isDark ? "rgba(30, 30, 30, 0.92)" : "rgba(255, 255, 255, 0.95)";
+      ctx.strokeStyle = this.isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.roundRect(tipX, tipY, tipW, tipH, 4);
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(tipX, tipY, tipW, tipH, 4);
+      } else {
+        ctx.rect(tipX, tipY, tipW, tipH);
+      }
       ctx.fill();
       ctx.stroke();
 
       ctx.font = "11px sans-serif";
       ctx.textAlign = "left";
-      ctx.fillStyle = "#20c997";
+      ctx.fillStyle = downColor;
       ctx.fillText(tooltipDown, tipX + 8, tipY + 18);
-      ctx.fillStyle = "#339af0";
+      ctx.fillStyle = upColor;
       ctx.fillText(tooltipUp, tipX + 8, tipY + 36);
     }
 

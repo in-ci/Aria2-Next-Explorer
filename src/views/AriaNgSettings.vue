@@ -35,16 +35,6 @@
         <!-- 1. 全局偏好设置 (Global) -->
         <div v-show="currentTab === 'global'" class="tab-pane active">
           <div class="settings-table striped hoverable">
-            <!-- 客户端版本 (AriaNg Version) -->
-            <div class="row">
-              <div class="setting-key setting-key-without-desc col-sm-4">
-                <span>{{ $t("AriaNg Version") }}</span>
-              </div>
-              <div class="setting-value col-sm-8">
-                <span>{{ ariaNgVersion }}</span>
-              </div>
-            </div>
-
             <!-- 语言设置 (Language: 仅保留简体中文和英文) -->
             <div class="row">
               <div class="setting-key setting-key-without-desc col-sm-4">
@@ -86,6 +76,26 @@
                     <option :value="true">{{ $t("Enabled") }}</option>
                     <option :value="false">{{ $t("Disabled") }}</option>
                   </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 页面标题 (Page Title) -->
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Page Title") }}</span>
+              </div>
+              <div class="setting-value col-sm-8">
+                <div class="form-group mb-1">
+                  <input
+                    class="form-control"
+                    type="text"
+                    v-model="pageTitle"
+                    @input="onPageTitleChange"
+                  />
+                </div>
+                <div class="small text-muted">
+                  <em>[{{ $t("Preview") }}] {{ titlePreview }}</em>
                 </div>
               </div>
             </div>
@@ -134,6 +144,21 @@
                   <select class="form-control" v-model="afterCreatingNewTask" @change="onAfterCreatingChange">
                     <option value="task-list">{{ $t("Navigate to Task List Page") }}</option>
                     <option value="task-detail">{{ $t("Navigate to Task Detail Page") }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 重试任务后删除原任务 (Remove Old Tasks After Retrying) -->
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Remove Old Tasks After Retrying") }}</span>
+              </div>
+              <div class="setting-value col-sm-8">
+                <div class="form-group mb-0">
+                  <select class="form-control" v-model="removeOldTaskAfterRetrying" @change="onRemoveOldTaskChange">
+                    <option :value="true">{{ $t("Enabled") }}</option>
+                    <option :value="false">{{ $t("Disabled") }}</option>
                   </select>
                 </div>
               </div>
@@ -275,20 +300,26 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { store, rpcList, applyTheme, applyAnimationEffects, switchRpcServer } from "../store";
+import { ref, computed } from "vue";
+import { store, rpcList, currentRpc, applyTheme, applyAnimationEffects, switchRpcServer } from "../store";
 import { setLanguage, currentLang, t } from "../i18n";
+import { formatPageTitle } from "../utils/title";
 
 const currentTab = ref("global");
 const showSecret = ref(false);
-const ariaNgVersion = ref("3.0.0 (Vue3 Edition)");
 const selectedLanguage = ref(currentLang.value);
 const selectedTheme = ref(store.options.theme || "default");
 const animationEffects = ref(store.options.animationEffects !== false);
+const pageTitle = ref(store.options.title || "${downspeed}, ${upspeed} - ${title}");
 const refreshInterval = ref(store.options.downloadTaskRefreshInterval || 1000);
 const defaultTaskPage = ref(store.options.defaultTaskPage || "downloading");
 const afterCreatingNewTask = ref(store.options.afterCreatingNewTask || "task-list");
+const removeOldTaskAfterRetrying = ref(store.options.removeOldTaskAfterRetrying !== false);
 const confirmTaskRemoval = ref(store.options.confirmTaskRemoval !== false);
+
+const titlePreview = computed(() => {
+  return formatPageTitle(pageTitle.value, store.globalStat, currentRpc.value.rpcAlias);
+});
 
 function onLanguageChange() {
   setLanguage(selectedLanguage.value);
@@ -304,6 +335,14 @@ function onAnimationEffectsChange() {
   applyAnimationEffects(animationEffects.value);
 }
 
+function onPageTitleChange() {
+  store.options.title = pageTitle.value;
+  saveSettings();
+  if (typeof document !== "undefined") {
+    document.title = titlePreview.value;
+  }
+}
+
 function onIntervalChange() {
   store.options.downloadTaskRefreshInterval = refreshInterval.value;
   saveSettings();
@@ -316,6 +355,11 @@ function onDefaultTaskPageChange() {
 
 function onAfterCreatingChange() {
   store.options.afterCreatingNewTask = afterCreatingNewTask.value;
+  saveSettings();
+}
+
+function onRemoveOldTaskChange() {
+  store.options.removeOldTaskAfterRetrying = removeOldTaskAfterRetrying.value;
   saveSettings();
 }
 
@@ -338,6 +382,7 @@ function resetAllSettings() {
     const defaultOpts = {
       language: "zh_CN",
       theme: "default",
+      title: "${downspeed}, ${upspeed} - ${title}",
       animationEffects: true,
       compactMode: false,
       displayOrder: "default:asc",
@@ -345,6 +390,7 @@ function resetAllSettings() {
       downloadTaskRefreshInterval: 1000,
       defaultTaskPage: "downloading",
       afterCreatingNewTask: "task-list",
+      removeOldTaskAfterRetrying: true,
       confirmTaskRemoval: true,
       rpcAlias: "Aria2-Next",
       rpcHost: "localhost",
@@ -358,9 +404,11 @@ function resetAllSettings() {
     selectedLanguage.value = "zh_CN";
     selectedTheme.value = "default";
     animationEffects.value = true;
+    pageTitle.value = "${downspeed}, ${upspeed} - ${title}";
     refreshInterval.value = 1000;
     defaultTaskPage.value = "downloading";
     afterCreatingNewTask.value = "task-list";
+    removeOldTaskAfterRetrying.value = true;
     confirmTaskRemoval.value = true;
     store.compactMode = false;
 
@@ -368,6 +416,9 @@ function resetAllSettings() {
     applyTheme("default");
     applyAnimationEffects(true);
     saveSettings();
+    if (typeof document !== "undefined") {
+      document.title = titlePreview.value;
+    }
   }
 }
 

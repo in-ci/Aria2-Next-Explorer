@@ -106,6 +106,12 @@
                   @click="singleAction('start', task.gid)"
                 ></a>
                 <a
+                  v-if="task.status === 'complete' || task.status === 'error' || task.status === 'removed'"
+                  class="task-action-btn fa fa-refresh text-primary mr-2 pointer-cursor"
+                  :title="$t('Retry')"
+                  @click="retryTask(task)"
+                ></a>
+                <a
                   class="task-action-btn fa fa-trash-o text-danger pointer-cursor"
                   :title="$t('Delete')"
                   @click="singleAction('remove', task.gid)"
@@ -183,7 +189,7 @@
 
 <script setup>
 import { computed } from "vue";
-import { store, batchAction } from "../store";
+import { store, batchAction, refreshData } from "../store";
 import { formatBytes, formatSpeed, formatDuration, formatPercent } from "../utils/format";
 
 const props = defineProps({
@@ -245,6 +251,32 @@ function toggleTaskSelect(gid, event) {
 
 function singleAction(action, gid) {
   batchAction(action, [gid]);
+}
+
+async function retryTask(task) {
+  if (!store.client || !task) return;
+  try {
+    const uris = [];
+    if (task.files && task.files.length > 0) {
+      task.files.forEach((f) => {
+        if (f.uris && f.uris.length > 0) {
+          f.uris.forEach((u) => {
+            if (u.uri && !uris.includes(u.uri)) uris.push(u.uri);
+          });
+        }
+      });
+    }
+
+    if (uris.length > 0) {
+      await store.client.addUri(uris, {});
+      if (store.options.removeOldTaskAfterRetrying !== false) {
+        await store.client.removeDownloadResult(task.gid).catch(() => {});
+      }
+      await refreshData();
+    }
+  } catch (err) {
+    console.warn("Failed to retry task:", err);
+  }
 }
 
 function toggleSort(field) {

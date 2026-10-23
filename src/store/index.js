@@ -11,8 +11,22 @@ import { reactive, ref, computed, markRaw } from "vue";
 import { Aria2Client } from "../api/aria2";
 import { getErrorDescription } from "../api/aria2-errors";
 import { currentLang, setLanguage, t } from "../i18n";
+import { formatPageTitle } from "../utils/title";
 
 const LOCAL_STORAGE_KEY = "AriaNg.Options";
+
+function createInitialSpeedHistory() {
+  const history = [];
+  const now = Date.now();
+  for (let i = 0; i < 60; i++) {
+    history.push({
+      down: 0,
+      up: 0,
+      time: now - (60 - i) * 1000,
+    });
+  }
+  return history;
+}
 
 /**
  * 读取本地持久化配置
@@ -21,6 +35,7 @@ function loadSavedOptions() {
   const defaultOpts = {
     language: "zh_CN",
     theme: "default",
+    title: "${downspeed}, ${upspeed} - ${title}",
     animationEffects: true,
     compactMode: false,
     displayOrder: "default:asc",
@@ -28,6 +43,7 @@ function loadSavedOptions() {
     downloadTaskRefreshInterval: 1000,
     defaultTaskPage: "downloading",
     afterCreatingNewTask: "task-list",
+    removeOldTaskAfterRetrying: true,
     confirmTaskRemoval: true,
     rpcAlias: "Aria2-Next",
     rpcHost: "localhost",
@@ -99,7 +115,7 @@ export const store = reactive({
   selectedGids: new Set(),
 
   // 实时速度历史（供 Canvas 图表使用）
-  speedHistory: [],
+  speedHistory: createInitialSpeedHistory(),
 
   // Aria2 服务端信息
   serverInfo: {
@@ -259,6 +275,11 @@ export async function refreshData() {
       if (store.speedHistory.length > 60) {
         store.speedHistory.shift();
       }
+
+      if (typeof document !== "undefined") {
+        const tpl = store.options.title || "${downspeed}, ${upspeed} - ${title}";
+        document.title = formatPageTitle(tpl, store.globalStat, currentRpc.value.rpcAlias);
+      }
     }
 
     store.tasks.active = (active || []).map(processTaskItem);
@@ -300,6 +321,7 @@ export function initStore() {
   });
 
   store.client.connect();
+  refreshData();
 
   // 定时心跳轮询 (1000ms)
   clearInterval(store.pollTimer);
@@ -321,7 +343,7 @@ export function switchRpcServer(index) {
   store.activeRpcIndex = index;
   store.selectedGids.clear();
   store.tasks = { active: [], waiting: [], stopped: [] };
-  store.speedHistory = [];
+  store.speedHistory = createInitialSpeedHistory();
 
   const target = currentRpc.value;
   store.client.updateConfig(target);
