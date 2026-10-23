@@ -93,9 +93,19 @@ onMounted(() => {
   updateContentHeight();
   window.addEventListener("resize", updateContentHeight);
 
+  // 挂载后移除 hold-transition，恢复 AdminLTE 平滑的 CSS 动效
+  setTimeout(() => {
+    document.body.classList.remove("hold-transition");
+  }, 50);
+
   // 同步紧凑模式至 <html> 根节点，保证字体及排版尺寸完全还原
   watchEffect(() => {
     document.documentElement.classList.toggle("compact-mode", Boolean(store.compactMode));
+  });
+
+  // 同步侧边栏折叠状态至 <body> 根节点，使 AdminLTE 的侧边栏动画与 content-wrapper 完美向左联动收起
+  watchEffect(() => {
+    document.body.classList.toggle("sidebar-collapse", Boolean(isSidebarCollapsed.value));
   });
 });
 
