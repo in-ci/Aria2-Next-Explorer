@@ -300,41 +300,67 @@
 </template>
 
 <script setup>
+/**
+ * ==============================================================================
+ * WebUI 常规全局偏好与 RPC 服务端设置组件 (AriaNgSettings)
+ * ==============================================================================
+ * 支持语言切换（简中/英文）、主题切换（经典/深色）、开启动画效果、
+ * 网页标题实时模板配置与动态预览、轮询心跳间隔调节、默认任务页面切换、
+ * 重试后删除原任务、删除前确认、紧凑模式以及多 RPC 服务端的新增/删除/修改。
+ * ==============================================================================
+ */
+
 import { ref, computed } from "vue";
 import { store, rpcList, currentRpc, applyTheme, applyAnimationEffects, switchRpcServer } from "../store";
 import { setLanguage, currentLang, t } from "../i18n";
 import { formatPageTitle } from "../utils/title";
 
+/** 当前选项卡 ('global' 或 'rpc_0', 'rpc_1' 等) */
 const currentTab = ref("global");
+/** 是否明文显示 RPC 密钥输入框 */
 const showSecret = ref(false);
+/** 当前选中的界面语言 */
 const selectedLanguage = ref(currentLang.value);
+/** 当前选中的外观主题 */
 const selectedTheme = ref(store.options.theme || "default");
+/** 是否开启动画动效 */
 const animationEffects = ref(store.options.animationEffects !== false);
+/** 页面标题模板输入内容 */
 const pageTitle = ref(store.options.title || "${downspeed}, ${upspeed} - ${title}");
+/** 任务信息轮询刷新间隔 (毫秒) */
 const refreshInterval = ref(store.options.downloadTaskRefreshInterval || 1000);
+/** 默认进入的任务列表分类页面 */
 const defaultTaskPage = ref(store.options.defaultTaskPage || "downloading");
+/** 创建新任务后的跳转动作 */
 const afterCreatingNewTask = ref(store.options.afterCreatingNewTask || "task-list");
+/** 重试任务后是否删除原任务 */
 const removeOldTaskAfterRetrying = ref(store.options.removeOldTaskAfterRetrying !== false);
+/** 删除任务前是否弹出二次确认框 */
 const confirmTaskRemoval = ref(store.options.confirmTaskRemoval !== false);
 
+/** 计算属性：页面标题模板动态实时预览字符串 */
 const titlePreview = computed(() => {
   return formatPageTitle(pageTitle.value, store.globalStat, currentRpc.value.rpcAlias);
 });
 
+/** 响应语言切换 */
 function onLanguageChange() {
   setLanguage(selectedLanguage.value);
   store.options.language = selectedLanguage.value;
   saveSettings();
 }
 
+/** 响应主题切换 */
 function onThemeChange() {
   applyTheme(selectedTheme.value);
 }
 
+/** 响应动画动效开关切换 */
 function onAnimationEffectsChange() {
   applyAnimationEffects(animationEffects.value);
 }
 
+/** 响应页面标题模板修改 */
 function onPageTitleChange() {
   store.options.title = pageTitle.value;
   saveSettings();
@@ -343,36 +369,45 @@ function onPageTitleChange() {
   }
 }
 
+/** 响应刷新心跳间隔变更 */
 function onIntervalChange() {
   store.options.downloadTaskRefreshInterval = refreshInterval.value;
   saveSettings();
 }
 
+/** 响应默认任务分类页变更 */
 function onDefaultTaskPageChange() {
   store.options.defaultTaskPage = defaultTaskPage.value;
   saveSettings();
 }
 
+/** 响应创建任务后跳转动作变更 */
 function onAfterCreatingChange() {
   store.options.afterCreatingNewTask = afterCreatingNewTask.value;
   saveSettings();
 }
 
+/** 响应重试后删除原任务配置变更 */
 function onRemoveOldTaskChange() {
   store.options.removeOldTaskAfterRetrying = removeOldTaskAfterRetrying.value;
   saveSettings();
 }
 
+/** 响应删除确认开关变更 */
 function onConfirmTaskRemovalChange() {
   store.options.confirmTaskRemoval = confirmTaskRemoval.value;
   saveSettings();
 }
 
+/** 响应紧凑模式变更 */
 function onCompactModeChange() {
   store.options.compactMode = store.compactMode;
   saveSettings();
 }
 
+/**
+ * 重置所有选项为初始出厂设置
+ */
 function resetAllSettings() {
   if (window.confirm(t("Are you sure you want to reset all settings?"))) {
     try {
@@ -422,12 +457,18 @@ function resetAllSettings() {
   }
 }
 
+/**
+ * 持久化配置至本地存储
+ */
 function saveSettings() {
   try {
     localStorage.setItem("AriaNg.Options", JSON.stringify(store.options));
   } catch (e) {}
 }
 
+/**
+ * 同步并持久化所有 RPC 引擎服务器配置
+ */
 function saveRpcSettings() {
   const primary = rpcList.value[0];
   store.options.rpcAlias = primary.rpcAlias;
@@ -449,6 +490,9 @@ function saveRpcSettings() {
   saveSettings();
 }
 
+/**
+ * 新增一个扩展 RPC 引擎服务
+ */
 function addNewRpcServer() {
   const newServer = {
     rpcAlias: `RPC ${rpcList.value.length + 1}`,
@@ -466,6 +510,10 @@ function addNewRpcServer() {
   currentTab.value = `rpc_${rpcList.value.length - 1}`;
 }
 
+/**
+ * 删除指定的扩展 RPC 引擎服务
+ * @param {number} index
+ */
 function removeRpcServer(index) {
   if (index <= 0) return; // 不可删除主 RPC
   store.options.extendRpcServers.splice(index - 1, 1);
@@ -476,6 +524,10 @@ function removeRpcServer(index) {
   currentTab.value = "global";
 }
 
+/**
+ * 激活指定索引的 RPC 服务器
+ * @param {number} index
+ */
 function activateRpc(index) {
   switchRpcServer(index);
 }

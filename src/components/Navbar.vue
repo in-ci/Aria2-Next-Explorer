@@ -152,15 +152,27 @@
 </template>
 
 <script setup>
+/**
+ * ==============================================================================
+ * 顶部导航与批量快捷操作栏组件 (Navbar)
+ * ==============================================================================
+ * 包含新建任务快捷入口、批量启动/暂停/删除、清理已停止任务、全选、
+ * 排序规则切换、紧凑模式开关及实时模糊搜索过滤框。
+ * ==============================================================================
+ */
+
 import { ref, computed } from "vue";
 import { store, batchAction, clearAllStoppedTasks } from "../store";
 
+/** 排序规则下拉菜单展开状态 */
 const isOrderDropdownOpen = ref(false);
 
+/** 计算属性：当前是否存在被用户勾选的任务 */
 const hasSelectedTasks = computed(() => {
   return store.selectedGids.size > 0;
 });
 
+/** 预定义排序选项列表 */
 const sortOrders = [
   { key: "default:asc", name: "Default", icon: "fa-list-ul" },
   { key: "name:asc", name: "By File Name", icon: "fa-sort-alpha-asc" },
@@ -171,16 +183,26 @@ const sortOrders = [
   { key: "uspeed:desc", name: "By Upload Speed", icon: "fa-arrow-circle-up" },
 ];
 
+/**
+ * 触发针对已勾选任务的批量动作
+ * @param {'start' | 'pause' | 'remove'} action
+ */
 function handleAction(action) {
   if (hasSelectedTasks.value) {
     batchAction(action);
   }
 }
 
+/**
+ * 清除所有已完成/已停止任务
+ */
 function handleClearStopped() {
   clearAllStoppedTasks();
 }
 
+/**
+ * 切换全选与取消全选
+ */
 function handleSelectAll() {
   const currentTasks = [
     ...store.tasks.active,

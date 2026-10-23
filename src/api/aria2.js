@@ -249,27 +249,70 @@ export class Aria2Client {
     }
   }
 
-  // Aria2 常用方法封装
+  // ==================== Aria2 常用方法封装 ====================
+
+  /**
+   * 获取指定任务的当前状态与详情数据
+   * @param {string} gid 任务 GID
+   * @param {string[]} [keys] 指定返回字段列表（精简报文）
+   * @returns {Promise<object>}
+   */
+  tellStatus(gid, keys) {
+    return this.invoke("aria2.tellStatus", [gid, ...(keys ? [keys] : [])]);
+  }
+
+  /**
+   * 获取当前正在下载的活跃任务列表
+   * @param {string[]} [keys] 指定返回字段列表
+   * @returns {Promise<object[]>}
+   */
   tellActive(keys) {
     return this.invoke("aria2.tellActive", keys ? [keys] : []);
   }
 
+  /**
+   * 获取等待队列中的任务列表
+   * @param {number} offset 偏移量
+   * @param {number} num 数量
+   * @param {string[]} [keys] 指定返回字段列表
+   * @returns {Promise<object[]>}
+   */
   tellWaiting(offset, num, keys) {
     return this.invoke("aria2.tellWaiting", [offset, num, ...(keys ? [keys] : [])]);
   }
 
+  /**
+   * 获取已停止/完成/出错的任务列表
+   * @param {number} offset 偏移量
+   * @param {number} num 数量
+   * @param {string[]} [keys] 指定返回字段列表
+   * @returns {Promise<object[]>}
+   */
   tellStopped(offset, num, keys) {
     return this.invoke("aria2.tellStopped", [offset, num, ...(keys ? [keys] : [])]);
   }
 
+  /**
+   * 获取全局速度与任务统计
+   * @returns {Promise<object>}
+   */
   getGlobalStat() {
     return this.invoke("aria2.getGlobalStat");
   }
 
+  /**
+   * 获取全局配置项
+   * @returns {Promise<object>}
+   */
   getGlobalOption() {
     return this.invoke("aria2.getGlobalOption");
   }
 
+  /**
+   * 修改全局配置项
+   * @param {object} options
+   * @returns {Promise<string>}
+   */
   changeGlobalOption(options) {
     return this.invoke("aria2.changeGlobalOption", [options]);
   }

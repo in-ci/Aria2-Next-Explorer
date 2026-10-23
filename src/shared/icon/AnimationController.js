@@ -1,3 +1,12 @@
+/**
+ * ==============================================================================
+ * 浏览器图标动态渲染控制器 (AnimationController)
+ * ==============================================================================
+ * 单例模式设计，负责统一协调各类扩展图标动效（下载、完成、暂停、出错、进度）
+ * 内置过渡插值、优先级锁屏机制与自动回收定时器，杜绝后台服务泄露
+ * ==============================================================================
+ */
+
 import {
   DownloadAnimation,
   CompleteAnimation,
@@ -9,35 +18,38 @@ import { FRAME_INTERVAL, FADE_INTERVAL } from "./Constants.js";
 import { IconManager } from "./IconManager.js";
 import { TransitionManager } from "./TransitionManager.js";
 
-/**
- * AnimationController - Controls browser icon animations
- * Singleton pattern to ensure only one animation controller exists globally
- */
 export class AnimationController {
   static #instance = null;
 
   constructor() {
-    // Enforce singleton pattern
+    // 强制单例模式
     if (AnimationController.#instance) {
       return AnimationController.#instance;
     }
 
+    /** 动画过渡管理器 */
     this.transitionManager = new TransitionManager();
+    /** 渲染循环定时器 ID */
     this.intervalId = null;
+    /** 自动超时停止定时器 ID */
     this.timeoutId = null;
+    /** 淡出过渡定时器 ID */
     this.fadeIntervalId = null;
+    /** 进度条动画实例缓存 */
     this.progressAnimation = null;
-    // Add state management
+    /** 互斥锁状态：是否处于锁定不可打断状态 */
     this.isBlocked = false;
+    /** 锁定结束时间戳 */
     this.blockEndTime = 0;
-    // Priority animations that cannot be interrupted
+    /** 具有高优先级、不可被普通状态打断的动效集合 */
     this.priorityAnimations = new Set(["Complete", "Error"]);
 
     AnimationController.#instance = this;
   }
 
   /**
-   * Get singleton instance
+   * 获取全局单例控制器实例
+   * @returns {AnimationController}
    */
   static getInstance() {
     if (!AnimationController.#instance) {
@@ -46,12 +58,16 @@ export class AnimationController {
     return AnimationController.#instance;
   }
 
+  /**
+   * 启动指定类型的图标动画
+   * @param {'Download' | 'Pause' | 'Complete' | 'Error' | 'Progress'} type 动画类型
+   * @param {number} [progress] 进度比例 (0.0 - 1.0)
+   */
   start(type, progress) {
-    // Check if blocked and if this is a priority animation
     const currentTime = performance.now();
     const isPriorityAnimation = this.priorityAnimations.has(type);
 
-    // If currently blocked and not a priority animation, ignore
+    // 如果处于互斥锁定中且当前请求非高优先级动画，则直接忽略
     if (
       this.isBlocked &&
       currentTime < this.blockEndTime &&
@@ -70,17 +86,15 @@ export class AnimationController {
         break;
       case "Complete":
         newAnimation = new CompleteAnimation();
-        // Block for the full duration to prevent interruption
+        // 关键完成动效锁定半周期，防止被下一次心跳瞬间打断
         this.#setBlocked(newAnimation.duration * 0.5);
         break;
       case "Error":
         newAnimation = new ErrorAnimation();
-        // Block for the full duration to prevent interruption
         this.#setBlocked(newAnimation.duration * 0.5);
         break;
       case "Progress":
         if (progress < 0 || progress > 1) {
-          console.error("AnimationController: Invalid progress value.");
           return;
         }
         if (!this.progressAnimation) {
@@ -97,36 +111,38 @@ export class AnimationController {
       ? this.transitionManager.nextAnimation
       : this.transitionManager.currentAnimation;
 
-    // Start transition between different animation
+    // 不同动画类型之间平滑淡入过渡
     if (currentAnimation?.constructor !== newAnimation.constructor) {
       this.transitionManager.startTransition(currentAnimation, newAnimation);
     } else if (!this.transitionManager.isTransitioning) {
       this.transitionManager.currentAnimation = newAnimation;
     }
 
-    // Stop existing fadeout
+    // 清理可能正在执行的淡出循环
     if (this.fadeIntervalId) {
       clearInterval(this.fadeIntervalId);
       this.fadeIntervalId = null;
     }
 
-    // Start animation loop
+    // 启动动画主渲染循环
     if (!this.intervalId) {
       this.#startAnimationLoop();
     }
 
-    // Clear any existing timeout auto-stop
+    // 刷新自动停止计时器
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }
 
-    // Set new timeout for auto-stop
     this.timeoutId = setTimeout(() => {
       this.#stop();
     }, newAnimation.duration);
   }
 
+  /**
+   * 启动基于 FRAME_INTERVAL 的渲染循环
+   */
   #startAnimationLoop() {
     this.intervalId = setInterval(async () => {
       const currentTime = performance.now();
@@ -137,19 +153,23 @@ export class AnimationController {
     }, FRAME_INTERVAL);
   }
 
-  // Set blocked state
+  /**
+   * 设置互斥状态持续时间
+   * @param {number} duration 锁定毫秒数
+   */
   #setBlocked(duration) {
     this.isBlocked = true;
     this.blockEndTime = performance.now() + duration;
 
-    // Set timer to clear blocked state
     setTimeout(() => {
       this.isBlocked = false;
     }, duration);
   }
 
+  /**
+   * 停止当前动画并淡出恢复默认扩展图标
+   */
   async #stop() {
-    // Clear the auto-stop timeout if it exists
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;

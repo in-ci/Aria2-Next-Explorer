@@ -285,10 +285,21 @@
 </template>
 
 <script setup>
+/**
+ * ==============================================================================
+ * 左侧主导航侧边栏组件 (Sidebar)
+ * ==============================================================================
+ * 提供快速切换活动 RPC 引擎服务器下拉菜单、任务状态分类分类计数徽章、
+ * 系统偏好设置入口及二级折叠 Aria2 详细设置菜单。
+ * ==============================================================================
+ */
+
 import { ref } from "vue";
 import { store, currentRpc, rpcList, switchRpcServer } from "../store";
 import { currentRoute } from "../router";
 
+/** RPC 服务器切换下拉菜单状态 */
 const isRpcDropdownOpen = ref(false);
+/** Aria2 下载设置二级折叠菜单开闭状态 */
 const isAria2MenuOpen = ref(false);
 </script>

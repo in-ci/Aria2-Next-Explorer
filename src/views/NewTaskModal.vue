@@ -120,22 +120,38 @@
 </template>
 
 <script setup>
+/**
+ * ==============================================================================
+ * 新建任务视图组件 (NewTaskModal)
+ * ==============================================================================
+ * 支持批量普通链接（HTTP/HTTPS/FTP/SFTP/Magnet 等）以及本地 .torrent 种子文件上传。
+ * 支持自定义存储目录、重命名以及初始暂停状态控制。
+ * ==============================================================================
+ */
+
 import { ref, computed } from "vue";
 import { store, refreshData } from "../store";
 import { navigate } from "../router";
 import { formatBytes } from "../utils/format";
 
+/** 当前选项卡 ('links' | 'torrent') */
 const currentTab = ref("links");
+/** 链接文本框输入内容 */
 const urlsText = ref("");
+/** 选中的种子文件对象 */
 const torrentFile = ref(null);
+/** 文件选择框 DOM 节点引用 */
 const fileInputRef = ref(null);
+/** 是否初始以暂停状态添加任务 */
 const startPaused = ref(false);
 
+/** 任务高级选项 */
 const options = ref({
   dir: "",
   out: "",
 });
 
+/** 计算属性：按行过滤出的合规下载链接集合 */
 const validUrls = computed(() => {
   return urlsText.value
     .split(/\r?\n/)
@@ -143,6 +159,7 @@ const validUrls = computed(() => {
     .filter((s) => s.length > 0 && !s.startsWith("#"));
 });
 
+/** 计算属性：当前输入是否符合提交条件 */
 const isValid = computed(() => {
   if (currentTab.value === "links") {
     return validUrls.value.length > 0;
@@ -150,6 +167,9 @@ const isValid = computed(() => {
   return torrentFile.value !== null;
 });
 
+/**
+ * 监听种子文件输入变更
+ */
 function onFileChange(e) {
   const file = e.target.files && e.target.files[0];
   if (file) {
@@ -157,10 +177,16 @@ function onFileChange(e) {
   }
 }
 
+/**
+ * 取消并返回默认任务列表页
+ */
 function cancel() {
   navigate(`/${store.options.defaultTaskPage || "downloading"}`);
 }
 
+/**
+ * 提交新建下载任务至 Aria2
+ */
 async function submitTask() {
   if (!store.client || !isValid.value) return;
 
@@ -193,6 +219,11 @@ async function submitTask() {
   }
 }
 
+/**
+ * 将 File 对象异步转为 Base64 编码字符串
+ * @param {File} file
+ * @returns {Promise<string>}
+ */
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

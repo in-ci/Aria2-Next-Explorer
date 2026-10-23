@@ -137,40 +137,54 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from "vue";
+/**
+ * ==============================================================================
+ * 底部状态与全局速度栏组件 (FooterBar)
+ * ==============================================================================
+ * 提供侧边栏收起/展开切换、全局限速模态弹窗、实时速度展示以及
+ * 基于原生 HTML5 Canvas 的速度折线图微图表浮层。
+ * ==============================================================================
+ */
+
+import { ref, computed, watch, nextTick, onUnmounted } from "vue";
 import { store } from "../store";
 import { formatSpeed } from "../utils/format";
 import { SpeedCanvasChart } from "../utils/canvas-chart";
 
 defineEmits(["toggleSidebar"]);
 
+/** 实时速度曲线图表弹窗显隐状态 */
 const isChartPopoverOpen = ref(false);
+/** 全局限速模态弹窗显隐状态 */
 const isRateLimitModalOpen = ref(false);
+/** 最大全局下载限速输入框绑定值 */
 const maxOverallDownloadLimit = ref("0");
+/** 最大全局上传限速输入框绑定值 */
 const maxOverallUploadLimit = ref("0");
 
+/** 速度图表 Canvas 节点引用 */
 const chartCanvasRef = ref(null);
+/** 图表绘制引擎实例句柄 */
 let chartInstance = null;
 
+/** 是否为暗色主题 */
 const isDarkTheme = computed(() => {
   return store.theme === "dark" || document.documentElement.classList.contains("dark-theme");
 });
 
+/**
+ * 初始化原生速度 Canvas 微图表
+ */
 function initChart() {
   if (!chartCanvasRef.value) return;
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
   chartInstance = new SpeedCanvasChart(chartCanvasRef.value, { isDark: isDarkTheme.value });
   chartInstance.setHistory(store.speedHistory);
 }
 
-watch(
-  () => store.speedHistory.length,
-  () => {
-    if (chartInstance && isChartPopoverOpen.value) {
-      chartInstance.setHistory(store.speedHistory);
-    }
-  }
-);
-
+// 监听全局统计心跳更新：当浮层打开时同步刷新图表数据
 watch(
   () => store.globalStat,
   () => {
@@ -181,23 +195,29 @@ watch(
   { deep: true }
 );
 
+// 监听主题变化，动态调整图表配色
 watch(isDarkTheme, (isDark) => {
   if (chartInstance) {
     chartInstance.setTheme(isDark);
   }
 });
 
+// 监听图表浮层开闭状态
 watch(isChartPopoverOpen, async (isOpen) => {
   if (isOpen) {
     await nextTick();
     setTimeout(() => {
       initChart();
     }, 20);
-  } else {
+  } else if (chartInstance) {
+    chartInstance.destroy();
     chartInstance = null;
   }
 });
 
+/**
+ * 保存全局上下行限速配置项
+ */
 async function saveRateLimit() {
   if (!store.client) return;
   try {
@@ -210,6 +230,14 @@ async function saveRateLimit() {
   }
   isRateLimitModalOpen.value = false;
 }
+
+// 组件卸载时释放图表资源
+onUnmounted(() => {
+  if (chartInstance) {
+    chartInstance.destroy();
+    chartInstance = null;
+  }
+});
 </script>
 
 <style scoped>

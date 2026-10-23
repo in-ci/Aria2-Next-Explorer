@@ -1,5 +1,6 @@
 <template>
   <div class="piece-map-container" ref="containerRef">
+    <!-- 图例展示 -->
     <div class="piece-legends mb-2">
       <div class="piece-legend">
         <div class="piece piece-completed"></div>
@@ -11,6 +12,7 @@
       </div>
     </div>
 
+    <!-- 高性能 Canvas 分片渲染画布 -->
     <canvas
       ref="canvasRef"
       class="piece-map-canvas"
@@ -18,6 +20,7 @@
       @mouseleave="hoverIndex = -1"
     ></canvas>
 
+    <!-- 鼠标悬停分片编号指示 -->
     <div v-if="hoverIndex >= 0" class="piece-hover-tip text-muted small mt-1">
       Piece #{{ hoverIndex }}: {{ isPieceCompleted(hoverIndex) ? $t("Completed") : $t("Uncompleted") }}
     </div>
@@ -25,11 +28,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+/**
+ * ==============================================================================
+ * BT / 多分片下载分片地图组件 (PieceMap)
+ * ==============================================================================
+ * 基于原生 HTML5 Canvas 2D 渲染海量分片区块（可支撑数万分片无需创建任何 DOM 元素）
+ * 彻底消除分片 DOM 爆炸导致的浏览器几十兆内存消耗与页面掉帧
+ * ==============================================================================
+ */
+
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import { parseBitfield } from "../utils/format";
 
 const props = defineProps({
+  /** Aria2 十六进制 bitfield 编码字符串 */
   bitfield: { type: String, default: "" },
+  /** 分片总数量 */
   pieceCount: { type: Number, default: 0 },
 });
 
@@ -37,14 +51,17 @@ const containerRef = ref(null);
 const canvasRef = ref(null);
 const hoverIndex = ref(-1);
 
+/** 将 bitfield 解析为布尔状态数组 */
 const pieces = computed(() => {
   return parseBitfield(props.bitfield, props.pieceCount);
 });
 
+/** 已下载完成的分片总数 */
 const completedPieces = computed(() => {
   return pieces.value.filter(Boolean).length;
 });
 
+/** 判断某个分片是否已完成 */
 function isPieceCompleted(idx) {
   return !!pieces.value[idx];
 }
@@ -52,6 +69,9 @@ function isPieceCompleted(idx) {
 const blockSize = 14;
 const gap = 3;
 
+/**
+ * 重新计算 Canvas 视口并绘制所有分片网格
+ */
 function renderCanvas() {
   const canvas = canvasRef.value;
   const container = containerRef.value;
@@ -75,7 +95,7 @@ function renderCanvas() {
 
   const isDark = document.documentElement.classList.contains("dark-theme");
   const uncompletedColor = isDark ? "rgba(255, 255, 255, 0.12)" : "#e9ecef";
-  const completedColor = "#20c997"; // 浅绿 / 主题绿
+  const completedColor = "#20c997"; // 经典绿 / 翠绿
 
   for (let i = 0; i < props.pieceCount; i++) {
     const r = Math.floor(i / cols);
@@ -96,6 +116,9 @@ function renderCanvas() {
   ctx.restore();
 }
 
+/**
+ * 响应鼠标移动定位分片索引
+ */
 function handleMouseMove(e) {
   const canvas = canvasRef.value;
   if (!canvas || props.pieceCount <= 0) return;
@@ -124,6 +147,11 @@ watch([() => props.bitfield, () => props.pieceCount], () => {
 onMounted(() => {
   renderCanvas();
   window.addEventListener("resize", renderCanvas);
+});
+
+// 卸载时彻底移除全局 resize 监听，杜绝内存泄漏
+onUnmounted(() => {
+  window.removeEventListener("resize", renderCanvas);
 });
 </script>
 

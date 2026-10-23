@@ -80,26 +80,43 @@
 </template>
 
 <script setup>
+/**
+ * ==============================================================================
+ * 下载器状态与系统操作视图组件 (Status)
+ * ==============================================================================
+ * 展示当前 Aria2 服务端的版本号、会话 Session ID、支持的特性列表，
+ * 并提供重连、保存当前下载会话以及关闭服务端进程等运维操作。
+ * ==============================================================================
+ */
+
 import { computed } from "vue";
 import { store, currentRpc } from "../store";
 
+/** 计算属性：当前完整的 RPC 连接地址字符串 */
 const currentRpcAddress = computed(() => {
   const r = currentRpc.value;
   return `${r.protocol}://${r.rpcHost}:${r.rpcPort}/${r.rpcInterface}`;
 });
 
+/** 计算属性：连接状态徽标样式类 */
 const statusBadgeClass = computed(() => {
   if (store.rpcStatus === "Connected") return "badge-success";
   if (store.rpcStatus === "Connecting") return "badge-primary";
   return "badge-danger";
 });
 
+/**
+ * 手动重连当前 RPC 服务端
+ */
 function handleReconnect() {
   if (store.client) {
     store.client.connect();
   }
 }
 
+/**
+ * 保存当前 Aria2 会话至磁盘
+ */
 async function handleSaveSession() {
   if (!store.client) return;
   try {
@@ -110,6 +127,9 @@ async function handleSaveSession() {
   }
 }
 
+/**
+ * 安全关闭远程 Aria2 下载器进程
+ */
 async function handleShutdown() {
   if (!store.client) return;
   if (confirm("Are you sure you want to shutdown Aria2?")) {
