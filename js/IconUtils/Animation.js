@@ -1,5 +1,5 @@
 import { Canvas } from "./Canvas.js";
-import { FRAME_RATE, ANIMATION_DURATION } from "./Constants.js"
+import { FRAME_RATE, ANIMATION_DURATION } from "./Constants.js";
 
 class BaseAnimation {
   constructor() {
@@ -13,11 +13,11 @@ class BaseAnimation {
 
   setupContext() {
     this.canvas.clear();
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
+    this.ctx.lineCap = "round";
+    this.ctx.lineJoin = "round";
   }
 
-  addShadow(color = 'rgba(0, 0, 0, 0.3)', blur = 1) {
+  addShadow(color = "rgba(0, 0, 0, 0.3)", blur = 1) {
     this.ctx.shadowColor = color;
     this.ctx.shadowBlur = blur;
     this.ctx.shadowOffsetX = 0.5;
@@ -42,7 +42,7 @@ class BaseAnimation {
   }
 
   render() {
-    throw new Error('render method must be implemented');
+    throw new Error("render method must be implemented");
   }
 }
 
@@ -50,9 +50,9 @@ export class DownloadAnimation extends BaseAnimation {
   constructor() {
     super();
     this.colors = [
-      [0, '#4FC3F7'],    // Light blue
-      [0.5, '#2196F3'],  // Medium blue
-      [1, '#1976D2']     // Dark blue
+      [0, "#4FC3F7"], // Light blue
+      [0.5, "#2196F3"], // Medium blue
+      [1, "#1976D2"], // Dark blue
     ];
   }
 
@@ -61,7 +61,7 @@ export class DownloadAnimation extends BaseAnimation {
     const bounceOffset = Math.sin(progress * Math.PI * 2) * 2 + 2;
 
     // Draw arrow shaft
-    this.addShadow('rgba(33, 150, 243, 0.3)', 2);
+    this.addShadow("rgba(33, 150, 243, 0.3)", 2);
     this.ctx.lineWidth = 2.5;
 
     const gradient = this.createGradient(this.colors, 8, 0, 8, 16);
@@ -81,9 +81,9 @@ export class ErrorAnimation extends BaseAnimation {
   constructor() {
     super();
     this.colors = [
-      [0, '#FF5252'],    // Light red
-      [0.5, '#F44336'],  // Medium red
-      [1, '#D32F2F']     // Dark red
+      [0, "#FF5252"], // Light red
+      [0.5, "#F44336"], // Medium red
+      [1, "#D32F2F"], // Dark red
     ];
   }
 
@@ -100,12 +100,15 @@ export class ErrorAnimation extends BaseAnimation {
     const gradient = this.createGradient(
       this.colors.map(([stop, color]) => [
         stop,
-        color.replace(')', `, ${alpha})`)
+        color.replace(")", `, ${alpha})`),
       ]),
-      4, 4, 12, 12
+      4,
+      4,
+      12,
+      12,
     );
 
-    this.addShadow('rgba(255, 0, 0, 0.4)', 3);
+    this.addShadow("rgba(255, 0, 0, 0.4)", 3);
     this.ctx.strokeStyle = gradient;
     this.ctx.lineWidth = 3;
 
@@ -128,15 +131,15 @@ export class CompleteAnimation extends BaseAnimation {
   constructor() {
     super();
     this.colors = [
-      [0, '#64DD17'],    // Light green
-      [0.5, '#4CAF50'],  // Medium green
-      [1, '#388E3C']     // Dark green
+      [0, "#64DD17"], // Light green
+      [0.5, "#4CAF50"], // Medium green
+      [1, "#388E3C"], // Dark green
     ];
     // Checkmark path points
     this.pathPoints = [
-      [2, 8],    // Start point
-      [7, 14],   // Corner point
-      [15, 4]    // End point
+      [2, 8], // Start point
+      [7, 14], // Corner point
+      [15, 4], // End point
     ];
   }
 
@@ -147,7 +150,7 @@ export class CompleteAnimation extends BaseAnimation {
     const drawProgress = Math.min(1, progress * 1.5);
 
     // Add shadow effect
-    this.addShadow('rgba(76, 175, 80, 0.3)', 2);
+    this.addShadow("rgba(76, 175, 80, 0.3)", 2);
     this.ctx.lineWidth = 2.5;
 
     // Create gradient for stroke
@@ -156,7 +159,7 @@ export class CompleteAnimation extends BaseAnimation {
       this.pathPoints[0][0],
       this.pathPoints[0][1],
       this.pathPoints[2][0],
-      this.pathPoints[2][1]
+      this.pathPoints[2][1],
     );
     this.ctx.strokeStyle = gradient;
 
@@ -167,16 +170,24 @@ export class CompleteAnimation extends BaseAnimation {
     // First segment (down-right)
     if (drawProgress <= 0.5) {
       const t = drawProgress * 2;
-      const x = this.pathPoints[0][0] + (this.pathPoints[1][0] - this.pathPoints[0][0]) * t;
-      const y = this.pathPoints[0][1] + (this.pathPoints[1][1] - this.pathPoints[0][1]) * t;
+      const x =
+        this.pathPoints[0][0] +
+        (this.pathPoints[1][0] - this.pathPoints[0][0]) * t;
+      const y =
+        this.pathPoints[0][1] +
+        (this.pathPoints[1][1] - this.pathPoints[0][1]) * t;
       this.ctx.lineTo(x, y);
     } else {
       this.ctx.lineTo(this.pathPoints[1][0], this.pathPoints[1][1]);
 
       // Second segment (up-right)
       const t = (drawProgress - 0.5) * 2;
-      const x = this.pathPoints[1][0] + (this.pathPoints[2][0] - this.pathPoints[1][0]) * t;
-      const y = this.pathPoints[1][1] + (this.pathPoints[2][1] - this.pathPoints[1][1]) * t;
+      const x =
+        this.pathPoints[1][0] +
+        (this.pathPoints[2][0] - this.pathPoints[1][0]) * t;
+      const y =
+        this.pathPoints[1][1] +
+        (this.pathPoints[2][1] - this.pathPoints[1][1]) * t;
       this.ctx.lineTo(x, y);
     }
 
@@ -192,9 +203,9 @@ export class ProgressAnimation extends BaseAnimation {
     this.animationSpeed = 0.02;
     this.ctx.lineWidth = 1.5;
     this.colors = [
-      [0, '#4FC3F7'],    // Light blue
-      [0.5, '#2196F3'],  // Medium blue
-      [1, '#1976D2']     // Dark blue
+      [0, "#4FC3F7"], // Light blue
+      [0.5, "#2196F3"], // Medium blue
+      [1, "#1976D2"], // Dark blue
     ];
   }
 
@@ -208,7 +219,8 @@ export class ProgressAnimation extends BaseAnimation {
       if (Math.abs(diff) < this.animationSpeed) {
         this.currentProgress = this.targetProgress;
       } else {
-        this.currentProgress += diff > 0 ? this.animationSpeed : -this.animationSpeed;
+        this.currentProgress +=
+          diff > 0 ? this.animationSpeed : -this.animationSpeed;
       }
     }
   }
@@ -227,8 +239,8 @@ export class ProgressAnimation extends BaseAnimation {
     this.ctx.moveTo(8, 12);
     this.ctx.lineTo(11, 9);
 
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
+    this.ctx.lineCap = "round";
+    this.ctx.lineJoin = "round";
     this.ctx.strokeStyle = gradient;
     this.ctx.stroke();
   }
@@ -241,13 +253,13 @@ export class ProgressAnimation extends BaseAnimation {
     // Background circle
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    this.ctx.strokeStyle = 'rgba(33, 150, 243, 0.2)';
+    this.ctx.strokeStyle = "rgba(33, 150, 243, 0.2)";
     this.ctx.stroke();
 
     const gradient = this.ctx.createConicGradient(
       -Math.PI / 2,
       centerX,
-      centerY
+      centerY,
     );
 
     gradient.addColorStop(0, this.colors[0][1]);
@@ -261,14 +273,14 @@ export class ProgressAnimation extends BaseAnimation {
       centerY,
       radius,
       -Math.PI / 2,
-      -Math.PI / 2 + this.currentProgress * Math.PI * 2
+      -Math.PI / 2 + this.currentProgress * Math.PI * 2,
     );
     this.ctx.strokeStyle = gradient;
     this.ctx.stroke();
   }
 
   render() {
-    this.addShadow('rgba(33, 150, 243, 0.3)', 2);
+    this.addShadow("rgba(33, 150, 243, 0.3)", 2);
 
     this.#updateProgress();
     this.ctx.clearRect(0, 0, 16, 16);
@@ -283,27 +295,26 @@ export class PauseAnimation extends BaseAnimation {
     super();
     this.duration = 3010;
     this.colors = [
-      [0, '#4FC3F7'],    // Light blue
-      [0.5, '#2196F3'],  // Medium blue
-      [1, '#1976D2']     // Dark blue   
+      [0, "#4FC3F7"], // Light blue
+      [0.5, "#2196F3"], // Medium blue
+      [1, "#1976D2"], // Dark blue
     ];
   }
 
   render() {
-
     // Draw circle
     this.ctx.beginPath();
     this.ctx.lineWidth = 1.5;
-    this.ctx.strokeStyle = 'rgba(33, 150, 243, .6)';
+    this.ctx.strokeStyle = "rgba(33, 150, 243, .6)";
     this.ctx.arc(8, 8, 7, 0, Math.PI * 2);
     this.ctx.stroke();
 
     // set round conner
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
+    this.ctx.lineCap = "round";
+    this.ctx.lineJoin = "round";
 
     // Draw pause symbol
-    this.addShadow('rgba(3, 169, 244, 0.2)', 1);
+    this.addShadow("rgba(3, 169, 244, 0.2)", 1);
     const gradient = this.createGradient(this.colors, 0, 0, 16, 16);
     this.ctx.strokeStyle = gradient;
     this.ctx.lineWidth = 1.5;

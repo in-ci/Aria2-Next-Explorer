@@ -1,13 +1,14 @@
-chrome && chrome.tabs.getZoomSettings(zoomSettings => {
+chrome &&
+  chrome.tabs.getZoomSettings((zoomSettings) => {
     zoomFactor = zoomSettings.defaultZoomFactor || 1;
-    const element = document.getElementById('AriaNG');
+    const element = document.getElementById("AriaNG");
     if (element && zoomFactor > 0 && zoomFactor != 1) {
-        const adjustedWidth = Math.floor(element.offsetWidth / zoomFactor);
-        const adjustedHeight = Math.floor(element.offsetHeight / zoomFactor);
+      const adjustedWidth = Math.floor(element.offsetWidth / zoomFactor);
+      const adjustedHeight = Math.floor(element.offsetHeight / zoomFactor);
 
-        element.style.width = adjustedWidth + 'px';
-        element.style.height = adjustedHeight + 'px';
+      element.style.width = adjustedWidth + "px";
+      element.style.height = adjustedHeight + "px";
     }
     // Pass hash info to iframe
     element.src += window.location.hash;
-})
+  });

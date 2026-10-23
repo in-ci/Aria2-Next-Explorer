@@ -1,7 +1,13 @@
-import { DownloadAnimation, CompleteAnimation, ErrorAnimation, ProgressAnimation, PauseAnimation } from './Animation.js';
-import { FRAME_INTERVAL, FADE_INTERVAL } from './Constants.js';
-import { IconManager } from './IconManager.js';
-import { TransitionManager } from './TransitionManager.js';
+import {
+  DownloadAnimation,
+  CompleteAnimation,
+  ErrorAnimation,
+  ProgressAnimation,
+  PauseAnimation,
+} from "./Animation.js";
+import { FRAME_INTERVAL, FADE_INTERVAL } from "./Constants.js";
+import { IconManager } from "./IconManager.js";
+import { TransitionManager } from "./TransitionManager.js";
 
 /**
  * AnimationController - Controls browser icon animations
@@ -25,7 +31,7 @@ export class AnimationController {
     this.isBlocked = false;
     this.blockEndTime = 0;
     // Priority animations that cannot be interrupted
-    this.priorityAnimations = new Set(['Complete', 'Error']);
+    this.priorityAnimations = new Set(["Complete", "Error"]);
 
     AnimationController.#instance = this;
   }
@@ -46,31 +52,35 @@ export class AnimationController {
     const isPriorityAnimation = this.priorityAnimations.has(type);
 
     // If currently blocked and not a priority animation, ignore
-    if (this.isBlocked && currentTime < this.blockEndTime && !isPriorityAnimation) {
+    if (
+      this.isBlocked &&
+      currentTime < this.blockEndTime &&
+      !isPriorityAnimation
+    ) {
       return;
     }
 
     let newAnimation = null;
     switch (type) {
-      case 'Download':
+      case "Download":
         newAnimation = new DownloadAnimation();
         break;
-      case 'Pause':
+      case "Pause":
         newAnimation = new PauseAnimation();
         break;
-      case 'Complete':
+      case "Complete":
         newAnimation = new CompleteAnimation();
         // Block for the full duration to prevent interruption
         this.#setBlocked(newAnimation.duration * 0.5);
         break;
-      case 'Error':
+      case "Error":
         newAnimation = new ErrorAnimation();
         // Block for the full duration to prevent interruption
         this.#setBlocked(newAnimation.duration * 0.5);
         break;
-      case 'Progress':
+      case "Progress":
         if (progress < 0 || progress > 1) {
-          console.error("AnimationController: Invalid progress value.")
+          console.error("AnimationController: Invalid progress value.");
           return;
         }
         if (!this.progressAnimation) {
@@ -83,8 +93,9 @@ export class AnimationController {
         throw new Error(`AnimationController: Invalid animation type: ${type}`);
     }
 
-    const currentAnimation = this.transitionManager.isTransitioning ?
-      this.transitionManager.nextAnimation : this.transitionManager.currentAnimation;
+    const currentAnimation = this.transitionManager.isTransitioning
+      ? this.transitionManager.nextAnimation
+      : this.transitionManager.currentAnimation;
 
     // Start transition between different animation
     if (currentAnimation?.constructor !== newAnimation.constructor) {
@@ -153,7 +164,9 @@ export class AnimationController {
       let progress = 0;
       this.fadeIntervalId = setInterval(async () => {
         progress += 0.1;
-        const imageData = this.transitionManager.currentAnimation.draw(1 - progress);
+        const imageData = this.transitionManager.currentAnimation.draw(
+          1 - progress,
+        );
         await IconManager.setIconImage(imageData);
 
         if (progress >= 1) {
