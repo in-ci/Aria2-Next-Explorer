@@ -110,9 +110,6 @@ export class EventHandler {
       if (command === "toggle-capture") {
         const current = this.configService.get("integration");
         await this.configService.set({ integration: !current });
-      } else if (command === "launch-aria2") {
-        const url = chrome.runtime.getURL("src/shared/aria2.html");
-        chrome.tabs.create({ url });
       }
     });
   }
@@ -168,17 +165,6 @@ export class EventHandler {
           .catch((error) =>
             sendResponse({ success: false, error: error.message }),
           );
-        return true;
-
-      case "QUERY_WINDOW_STATE":
-        chrome.windows
-          .get(message.data)
-          .then((window) => {
-            sendResponse({ data: window });
-          })
-          .catch((error) => {
-            sendResponse({ error: error.message });
-          });
         return true;
 
       case "CLICK_EVENT":

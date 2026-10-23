@@ -206,9 +206,6 @@
    "openWebUIStr": {
       "message": "打开主界面"
    },
-   "startAria2Str": {
-      "message": "启动 Aria2-Next"
-   },
    "toggleCapture": {
       "message": "开关下载自动拦截"
    },
@@ -277,9 +274,6 @@
    },
    "ManualDownloadCookiesTooltipDes": {
       "message": "在询问下载设置时，你需要决定是否删除相关网站的Cookies信息。"
-   },
-   "Aria2ManagerPromotionDes": {
-      "message": "好像未检测到本地 Aria2-Next 启动协议（aria2:// 或 aria2-next://）。\n\n请确认本地 Aria2-Next 已经启动，或配置系统协议关联。是否打开 Web 前端？"
    },
    "ResetSettingsDes": {
       "message": "确定重置扩展的配置为默认值？"

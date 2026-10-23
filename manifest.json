@@ -19,7 +19,9 @@
     "sidePanel",
     "power"
   ],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
     "service_worker": "src/background/index.js",
     "type": "module"
@@ -38,7 +40,7 @@
     "default_path": "webui/index.html"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self';object-src 'self';frame-src 'self' aria2://* aria2-next://* https://*.aria2e.com/;"
+    "extension_pages": "script-src 'self';object-src 'self';"
   },
   "icons": {
     "32": "images/logo32.png",
@@ -52,15 +54,11 @@
         "default": "Alt+A"
       },
       "description": "__MSG_toggleCapture__"
-    },
-    "launch-aria2": {
-      "suggested_key": {
-        "default": "Alt+X"
-      },
-      "description": "__MSG_startAria2Str__"
     }
   },
   "externally_connectable": {
-    "ids": ["*"]
+    "ids": [
+      "*"
+    ]
   }
 }

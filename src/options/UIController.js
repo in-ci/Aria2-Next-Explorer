@@ -573,12 +573,6 @@ export class UIController {
       if (helpToggleKeys) {
         this.#renderCommandKbd(helpToggleKeys, toggleCmd?.shortcut);
       }
-
-      const launchCmd = commands.find((c) => c.name === "launch-aria2");
-      const helpLaunchKeys = QS("#helpShortcutLaunchAria2");
-      if (helpLaunchKeys) {
-        this.#renderCommandKbd(helpLaunchKeys, launchCmd?.shortcut);
-      }
     } catch (err) {
       Logger.warn("Failed to update command shortcuts:", err);
     }

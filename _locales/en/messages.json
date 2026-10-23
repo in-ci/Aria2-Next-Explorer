@@ -206,9 +206,6 @@
    "openWebUIStr": {
       "message": "Open Web UI"
    },
-   "startAria2Str": {
-      "message": "Start Aria2-Next"
-   },
    "toggleCapture": {
       "message": "Toggle download capture"
    },
@@ -277,9 +274,6 @@
    },
    "ManualDownloadCookiesTooltipDes": {
       "message": "You should determine whether to delete the related website cookies when asking download settings."
-   },
-   "Aria2ManagerPromotionDes": {
-      "message": "Local Aria2-Next protocol handler (aria2:// or aria2-next://) was not detected.\n\nPlease verify that Aria2-Next is running or registered. Open Web UI now?"
    },
    "ResetSettingsDes": {
       "message": "Confirm to reset the extension configuration to default values?"

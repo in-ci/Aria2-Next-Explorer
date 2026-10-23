@@ -13,6 +13,7 @@
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
+const { ZipArchive } = require("archiver");
 
 // 项目根目录
 const ROOT_DIR = path.resolve(__dirname, "..");
@@ -20,6 +21,40 @@ const ROOT_DIR = path.resolve(__dirname, "..");
 const DIST_DIR = path.join(ROOT_DIR, "dist");
 // 临时解压包目录（可直接在 Edge 中作为已解压扩展加载）
 const STAGING_DIR = path.join(DIST_DIR, "Aria2-Next-Explorer-Edge");
+
+/**
+ * 使用 archiver 生成极致高压缩率 (Deflate Level 9 + MemLevel 9) ZIP 归档包
+ * @param {string} sourceDir 待压缩源目录
+ * @param {string} destPath 输出 .zip 文件完整路径
+ * @returns {Promise<number>} 压缩包字节大小
+ */
+function createHighCompressionZip(sourceDir, destPath) {
+  return new Promise((resolve, reject) => {
+    const output = fs.createWriteStream(destPath);
+    const archive = new ZipArchive({
+      zlib: {
+        level: 9, // Deflate 算法最高压缩比 (1-9)
+        memLevel: 9, // 最大内存查找表，最大化匹配长字符串，显著减少体积
+      },
+    });
+
+    output.on("close", () => {
+      resolve(output.bytesWritten);
+    });
+
+    output.on("error", (err) => {
+      reject(err);
+    });
+
+    archive.on("error", (err) => {
+      reject(err);
+    });
+
+    archive.pipe(output);
+    archive.directory(sourceDir, false);
+    archive.finalize().catch(reject);
+  });
+}
 
 /**
  * 递归复制目录
@@ -37,7 +72,8 @@ function copyDirSync(src, dest, excludes = []) {
   for (const entry of entries) {
     if (
       excludes.includes(entry.name) ||
-      excludes.some((ex) => ex.startsWith("*") && entry.name.endsWith(ex.slice(1)))
+      excludes.some((ex) => ex.startsWith("*") && entry.name.endsWith(ex.slice(1))) ||
+      excludes.some((ex) => ex.endsWith("*") && entry.name.startsWith(ex.slice(0, -1)))
     ) {
       continue;
     }
@@ -168,7 +204,7 @@ function packCrxExtension(edgeExe, stagingDir, distDir, version) {
 /**
  * 主打包流程
  */
-function runPackaging() {
+async function runPackaging() {
   console.log(
     "=================================================================",
   );
@@ -248,9 +284,15 @@ function runPackaging() {
 
     const stat = fs.statSync(srcPath);
     if (stat.isDirectory()) {
-      // 复制 src 目录时排除开发期 Vue 源码，运行时直接使用 dist/webui 编译产物
+      // 复制 src 目录时排除开发期 Vue 源码以及已编译进 webui/assets 的冗余样式与字体，避免发布包体积冗余
       const excludes = entryName === "src" 
-        ? ["components", "views", "public", "store", "router", "i18n", "*.vue", "App.vue", "main.js", "index.html", ".git", ".DS_Store", "Thumbs.db"]
+        ? [
+            "components", "views", "public", "store", "router", "i18n",
+            "*.vue", "App.vue", "main.js", "index.html",
+            "plugins-156783225a.min.css", "bootstrap.min.css", "aria-ng-a896d84fcf.min.css",
+            "fontawesome-webfont.*",
+            ".git", ".DS_Store", "Thumbs.db"
+          ]
         : [".git", ".DS_Store", "Thumbs.db"];
       copyDirSync(srcPath, destPath, excludes);
     } else if (stat.isFile()) {
@@ -303,22 +345,17 @@ function runPackaging() {
   checkJsFiles(STAGING_DIR);
   console.log("✅ 所有核心 JavaScript 脚本语法校验通过！");
 
-  // 6. 生成 ZIP 压缩包
+  // 6. 生成 ZIP 压缩包 (采用 archiver 极致高压缩 Level 9)
   const zipFileName = `Aria2-Next-Explorer-Edge-v${manifest.version}.zip`;
   const zipFilePath = path.join(DIST_DIR, zipFileName);
-  console.log(`🗜️ 正在压缩生成 Edge 扩展安装包: ${zipFileName} ...`);
+  console.log(`🗜️ 正在使用极致高压缩率 (Deflate Level 9) 生成 Edge 扩展发布包: ${zipFileName} ...`);
 
   try {
-    if (process.platform === "win32") {
-      // 在 Windows 环境下使用 PowerShell 的 Compress-Archive 快速创建标准 ZIP
-      const psCommand = `powershell -NoProfile -Command "Compress-Archive -Path '${STAGING_DIR}\\*' -DestinationPath '${zipFilePath}' -Force"`;
-      execSync(psCommand, { stdio: "inherit" });
-    } else {
-      // Linux / macOS 环境下使用 zip 命令
-      execSync(`cd "${STAGING_DIR}" && zip -r "${zipFilePath}" ./*`, {
-        stdio: "inherit",
-      });
-    }
+    await createHighCompressionZip(STAGING_DIR, zipFilePath);
+    const zipStat = fs.statSync(zipFilePath);
+    const sizeInKB = (zipStat.size / 1024).toFixed(1);
+    const sizeInMB = (zipStat.size / (1024 * 1024)).toFixed(2);
+    console.log(`✅ 成功生成高度压缩 ZIP 安装包: ${zipFileName} (${sizeInKB} KB / ${sizeInMB} MB)`);
   } catch (zipErr) {
     console.error("❌ 压缩生成 ZIP 文件时出错:", zipErr.message);
     process.exit(1);
@@ -385,4 +422,7 @@ function runPackaging() {
   );
 }
 
-runPackaging();
+runPackaging().catch((err) => {
+  console.error("❌ 打包过程发生未捕获异常:", err);
+  process.exit(1);
+});

@@ -95,7 +95,7 @@ export class MenuManager {
       type: "checkbox",
       checked: config.monitorAria2,
       id: "MENU_MONITOR_ARIA2",
-      title: "🩺 " + chrome.i18n.getMessage("monitorAria2Str"),
+      title: "📶 " + chrome.i18n.getMessage("monitorAria2Str"),
       contexts: ["action"],
     });
 
@@ -106,23 +106,13 @@ export class MenuManager {
       contexts: ["action"],
     });
 
-    // Start Aria2 or open WebUI
-    const remoteAria2List = this.monitorManager.getRemoteAria2List();
-    if (Utils.getPlatform() === "Windows" && remoteAria2List[0]?.isLocalhost) {
-      this.contextMenus.create({
-        type: "normal",
-        id: "MENU_START_ARIA2",
-        title: "⚡️ " + chrome.i18n.getMessage("startAria2Str"),
-        contexts: ["action"],
-      });
-    } else {
-      this.contextMenus.create({
-        type: "normal",
-        id: "MENU_OPEN_WEB_UI",
-        title: "🪟 " + chrome.i18n.getMessage("openWebUIStr"),
-        contexts: ["action"],
-      });
-    }
+    // Open WebUI
+    this.contextMenus.create({
+      type: "normal",
+      id: "MENU_OPEN_WEB_UI",
+      title: "🌐 " + chrome.i18n.getMessage("openWebUIStr"),
+      contexts: ["action"],
+    });
 
     // Website filter
     this.#createWebsiteFilterMenu();
@@ -285,10 +275,6 @@ export class MenuManager {
     switch (true) {
       case info.menuItemId === "MENU_OPEN_WEB_UI":
         await this.uiManager.launchUI(tab);
-        break;
-
-      case info.menuItemId === "MENU_START_ARIA2":
-        await chrome.tabs.create({ url: chrome.runtime.getURL("src/shared/aria2.html") });
         break;
 
       case info.menuItemId === "MENU_CAPTURE_DOWNLOAD":
