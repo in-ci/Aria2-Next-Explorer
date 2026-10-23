@@ -1,3 +1,26 @@
+/**
+ * 图标状态管理器
+ * 支持动态切换插件 Action Badge 图标及颜色
+ */
+
+const IconSet = {
+  Default: {
+    32: "/images/logo32.png",
+    48: "/images/logo48.png",
+    64: "/images/logo64.png",
+    128: "/images/logo128.png",
+  },
+  Grey: {
+    32: "/images/logo32-grey.png",
+  },
+  Dark: {
+    32: "/images/logo32-dark.png",
+  },
+  Dusk: {
+    32: "/images/logo32-dusk.png",
+  },
+};
+
 export class IconManager {
   static IconStyle = "Default";
 
@@ -30,21 +53,3 @@ export class IconManager {
     await this.setIconPath(iconStyle);
   }
 }
-
-const IconSet = {
-  Default: {
-    32: "images/logo32.png",
-    48: "images/logo48.png",
-    64: "images/logo64.png",
-    128: "images/logo128.png",
-  },
-  Grey: {
-    32: "images/logo32-grey.png",
-  },
-  Dark: {
-    32: "images/logo32-dark.png",
-  },
-  Dusk: {
-    32: "images/logo32-dusk.png",
-  },
-};

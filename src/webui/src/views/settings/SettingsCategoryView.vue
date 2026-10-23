@@ -1,56 +1,58 @@
 <template>
   <section class="content no-padding">
-    <div class="settings-table striped hoverable p-3">
-      <!-- 顶部操作栏 -->
-      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-        <div>
-          <h5 class="mb-0 font-weight-bold">{{ $t(categoryInfo?.titleKey || "Download Settings") }}</h5>
-          <small class="text-muted">{{ (categoryInfo?.options || []).length }} {{ $t("Options") || "项设置" }}</small>
-        </div>
-        <div>
-          <button
-            class="btn btn-secondary btn-sm mr-2"
-            :disabled="loading"
-            @click="loadGlobalOptions"
-          >
-            <i class="fa fa-refresh mr-1"></i>{{ $t("Reset") }}
-          </button>
-          <button
-            class="btn btn-primary btn-sm"
-            :disabled="loading || !isDirty"
-            @click="saveOptions"
-          >
-            <i class="fa fa-check mr-1"></i>{{ $t("Save") }}
-          </button>
-        </div>
+    <!-- 顶部操作栏 -->
+    <div class="settings-table-title px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <h5 class="mb-0 font-weight-bold mr-2">{{ $t(categoryInfo?.titleKey || "Download Settings") }}</h5>
+        <small class="text-muted">{{ (categoryInfo?.options || []).length }} {{ $t("Options") || "项设置" }}</small>
       </div>
-
-      <!-- 加载中 -->
-      <div v-if="loading" class="text-center py-5 text-muted">
-        <i class="fa fa-spinner fa-spin fa-2x mb-2 d-block"></i>
-        <span>{{ $t("Loading") }}...</span>
+      <div>
+        <button
+          class="btn btn-default btn-sm mr-2"
+          :disabled="loading"
+          @click="loadGlobalOptions"
+        >
+          <i class="fa fa-refresh mr-1"></i>{{ $t("Reset") }}
+        </button>
+        <button
+          class="btn btn-primary btn-sm"
+          :disabled="loading || !isDirty"
+          @click="saveOptions"
+        >
+          <i class="fa fa-check mr-1"></i>{{ $t("Save") }}
+        </button>
       </div>
+    </div>
 
-      <!-- 选项表单 -->
-      <div v-else>
-        <SettingRow
-          v-for="opt in (categoryInfo?.options || [])"
-          :key="opt.key"
-          :option="opt"
-          v-model="formValues[opt.key]"
-          :default-value="opt.defaultValue"
-          @update:model-value="isDirty = true"
-        />
+    <!-- 加载指示器 -->
+    <div v-if="loading" class="text-center py-5 text-muted">
+      <i class="fa fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+      <span>{{ $t("Loading") }}...</span>
+    </div>
 
-        <div v-if="(categoryInfo?.options || []).length === 0" class="text-center py-4 text-muted">
-          {{ $t("No available options") || "该分类下暂无选项" }}
-        </div>
+    <!-- 选项表格（direct children of .settings-table 使 AdminLTE striped/hoverable 样式对齐） -->
+    <div v-else class="settings-table striped hoverable">
+      <SettingRow
+        v-for="opt in (categoryInfo?.options || [])"
+        :key="opt.key"
+        :option="opt"
+        v-model="formValues[opt.key]"
+        :default-value="opt.defaultValue"
+        @update:model-value="isDirty = true"
+      />
+
+      <div v-if="(categoryInfo?.options || []).length === 0" class="text-center py-4 text-muted">
+        {{ $t("No available options") || "该分类下暂无选项" }}
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
+/**
+ * SettingsCategoryView - 基础分类设置渲染视图
+ * 统一处理全局选项获取、脏值检测与保存
+ */
 import { ref, computed, onMounted, watch } from "vue";
 import { store } from "../../store";
 import { t } from "../../i18n";

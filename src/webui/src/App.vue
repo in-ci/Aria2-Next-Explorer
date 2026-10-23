@@ -12,9 +12,9 @@
     <!-- 侧边菜单栏 -->
     <Sidebar />
 
-    <!-- 主体内容承载区 -->
+    <!-- 主体内容承载区 (与原版 AriaNg 结构完全对齐) -->
     <div id="content-wrapper" class="content-wrapper">
-      <div id="content-body" class="content-body">
+      <div id="content-body" class="content-body" ref="contentBodyRef">
         <component
           :is="currentViewComponent"
           v-bind="currentViewProps"
@@ -28,7 +28,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+/**
+ * App.vue - 根布局组件
+ * 处理视口高度自适应计算、紧凑模式切换与页面滚动流控制
+ */
+import { ref, computed, onMounted, onUnmounted, watchEffect } from "vue";
 import { store, initStore } from "./store";
 import { currentRoute } from "./router";
 import Navbar from "./components/Navbar.vue";
@@ -43,6 +47,7 @@ import Aria2Settings from "./views/Aria2Settings.vue";
 import AriaNgSettings from "./views/AriaNgSettings.vue";
 
 const isSidebarCollapsed = ref(false);
+const contentBodyRef = ref(null);
 
 const currentViewComponent = computed(() => {
   const name = currentRoute.value.name;
@@ -63,19 +68,66 @@ const currentViewProps = computed(() => {
   return {};
 });
 
+/**
+ * 视口高度自适应计算（与原版 AriaNg 机制完全一致）
+ * content-body 获得精确高度后，内部溢出选项与任务列表方可正常触发滚轮平滑滚动
+ */
+function updateContentHeight() {
+  const windowHeight = window.innerHeight;
+  const header = document.querySelector(".main-header");
+  const footer = document.querySelector(".main-footer");
+  const hHeight = header ? header.offsetHeight : 41;
+  const fHeight = footer ? footer.offsetHeight : 41;
+  if (contentBodyRef.value) {
+    contentBodyRef.value.style.height = `${windowHeight - hHeight - fHeight}px`;
+  }
+}
+
 onMounted(() => {
   initStore();
+  updateContentHeight();
+  window.addEventListener("resize", updateContentHeight);
+
+  // 同步紧凑模式至 <html> 根节点，保证字体及排版尺寸完全还原
+  watchEffect(() => {
+    document.documentElement.classList.toggle("compact-mode", Boolean(store.compactMode));
+  });
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", updateContentHeight);
 });
 </script>
 
 <style>
-/* 保证全屏撑开 */
+/* 保证全屏撑开且不出现外层双滚动条 */
 html,
 body,
-#app,
-.wrapper {
+#app {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.wrapper {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.content-wrapper {
+  margin-top: 41px;
+  margin-bottom: 41px;
+  height: calc(100vh - 82px);
+  overflow: hidden;
+}
+
+.content-wrapper > .content-body {
+  height: 100%;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

@@ -230,7 +230,6 @@ function runPackaging() {
     "_locales",
     "images",
     "src",
-    "webui",
   ];
 
   console.log("📦 正在复制扩展必要资源文件至发布暂存目录...");
@@ -247,7 +246,7 @@ function runPackaging() {
 
     const stat = fs.statSync(srcPath);
     if (stat.isDirectory()) {
-      // 复制 src 目录时排除未编译的 webui 源码目录，已编译产物直接取 webui/ 目录
+      // 复制 src 目录时排除未编译的 webui 源码目录，运行时直接使用 dist/webui 编译产物
       const excludes = entryName === "src" 
         ? ["webui", ".git", ".DS_Store", "Thumbs.db"]
         : [".git", ".DS_Store", "Thumbs.db"];
@@ -256,6 +255,17 @@ function runPackaging() {
       fs.copyFileSync(srcPath, destPath);
     }
     copiedCount++;
+  }
+
+  // 复制已编译好的 Vue 3 WebUI 产物至扩展包中的 webui/ 目录
+  const builtWebUiDir = path.join(DIST_DIR, "webui");
+  const destWebUiDir = path.join(STAGING_DIR, "webui");
+  if (fs.existsSync(builtWebUiDir)) {
+    copyDirSync(builtWebUiDir, destWebUiDir);
+    copiedCount++;
+  } else {
+    console.error("❌ 错误: 未能在 dist/ 目录下找到 webui 编译产物！");
+    process.exit(1);
   }
 
   console.log(`✅ 已复制 ${copiedCount} 个顶级资源模块。`);
