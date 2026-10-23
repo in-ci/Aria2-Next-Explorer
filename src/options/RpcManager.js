@@ -17,7 +17,7 @@ const UrlPatternPlaceholderDes = chrome.i18n.getMessage(
   "urlPatternPlaceholderDes",
 );
 
-import { ConfigService } from "../services/ConfigService.js";
+import { ConfigService } from "../shared/services/ConfigService.js";
 
 // Shorthand helpers
 const QS = (sel, ctx = document) => ctx.querySelector(sel);

@@ -342,7 +342,7 @@ class OptionsApp {
 // Create and initialize the application
 const app = new OptionsApp();
 
-window.onload = () => {
+function startApp() {
   app
     .init()
     .then(() => {
@@ -351,7 +351,13 @@ window.onload = () => {
     .catch((error) => {
       Logger.error("Failed to initialize options page:", error);
     });
-};
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startApp);
+} else {
+  startApp();
+}
 
 window.onbeforeunload = () => {
   app.cleanup();
