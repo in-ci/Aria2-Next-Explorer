@@ -7,7 +7,7 @@
   "default_locale": "en",
   "description": "__MSG_description__",
   "homepage_url": "https://github.com/AnInsomniacy/aria2-next",
-  "options_page": "options.html",
+  "options_page": "src/options/options.html",
   "permissions": [
     "cookies",
     "tabs",
@@ -21,7 +21,7 @@
   ],
   "host_permissions": ["<all_urls>"],
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "src/background/index.js",
     "type": "module"
   },
   "incognito": "split",
@@ -35,7 +35,7 @@
     "default_title": "__MSG_appName__"
   },
   "side_panel": {
-    "default_path": "ui/ariang/index.html"
+    "default_path": "webui/index.html"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self';object-src 'self';frame-src 'self' aria2://* aria2-next://* https://*.aria2e.com/;"

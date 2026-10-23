@@ -14,10 +14,18 @@ echo.
 :: 切换到项目根目录（脚本目录的上一级）
 cd /d "%~dp0\.."
 
-:: 检查系统是否安装了 Node.js
+:: 检查系统是否安装了 Node.js 与 pnpm
 where node >nul 2>nul
 if %errorlevel% neq 0 (
     echo [错误] 未检测到 Node.js 环境，请先安装 Node.js (https://nodejs.org/)！
+    echo.
+    pause
+    exit /b 1
+)
+
+where pnpm >nul 2>nul
+if %errorlevel% neq 0 (
+    echo [错误] 未检测到 pnpm 环境，请先安装 pnpm (npm install -g pnpm)！
     echo.
     pause
     exit /b 1

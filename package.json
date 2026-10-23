@@ -1,0 +1,18 @@
+{
+  "name": "aria2-next-explorer",
+  "version": "3.0.0",
+  "description": "Next generation Aria2 browser extension for Microsoft Edge and Chromium",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "package": "node scripts/package-edge.js"
+  },
+  "dependencies": {
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.0.7"
+  }
+}

@@ -51,6 +51,118 @@ function copyDirSync(src, dest, excludes = []) {
 }
 
 /**
+ * 查找本地 Microsoft Edge 或 Chromium 浏览器执行文件
+ * 支持标准安装路径、EdgeCore 以及 Canary/Dev 分支
+ */
+function findEdgeExecutable() {
+  const candidateDirs = [
+    "C:\\Program Files (x86)\\Microsoft\\EdgeCore",
+    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application",
+    "C:\\Program Files\\Microsoft\\Edge\\Application",
+    path.join(process.env.LOCALAPPDATA || "", "Microsoft\\Edge\\Application"),
+    "C:\\Program Files (x86)\\Microsoft\\Edge Dev\\Application",
+    "C:\\Program Files (x86)\\Microsoft\\Edge Canary\\Application",
+    "C:\\Program Files\\Google\\Chrome\\Application",
+    "C:\\Program Files (x86)\\Google\\Chrome\\Application",
+  ];
+
+  for (const baseDir of candidateDirs) {
+    if (!fs.existsSync(baseDir)) continue;
+
+    // 1. 直接检查当前目录下是否存在 msedge.exe 或 chrome.exe
+    for (const exeName of ["msedge.exe", "chrome.exe"]) {
+      const directPath = path.join(baseDir, exeName);
+      if (fs.existsSync(directPath)) return directPath;
+    }
+
+    // 2. 遍历版本子目录（例如 EdgeCore/155.0.4283.45/msedge.exe）
+    try {
+      const subEntries = fs.readdirSync(baseDir, { withFileTypes: true });
+      for (const sub of subEntries) {
+        if (sub.isDirectory()) {
+          for (const exeName of ["msedge.exe", "chrome.exe"]) {
+            const subExePath = path.join(baseDir, sub.name, exeName);
+            if (fs.existsSync(subExePath)) return subExePath;
+          }
+        }
+      }
+    } catch (e) {
+      // 忽略无权限或已锁定的目录
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 使用 Edge/Chromium 原生内核将解压目录打包为 .crx 文件
+ * @param {string} edgeExe 浏览器可执行文件路径
+ * @param {string} stagingDir 解压目录
+ * @param {string} distDir 输出目录
+ * @param {string} version 插件版本号
+ * @returns {string|null} 打包成功后的 .crx 文件路径
+ */
+function packCrxExtension(edgeExe, stagingDir, distDir, version) {
+  const keyPath = path.join(ROOT_DIR, "scripts", "developer-key.pem");
+  const tempProfileDir = path.join(distDir, ".temp-pack-profile");
+
+  let keyArg = "";
+  if (fs.existsSync(keyPath)) {
+    keyArg = ` --pack-extension-key="${keyPath}"`;
+  }
+
+  try {
+    // 确保临时用户目录存在
+    fs.mkdirSync(tempProfileDir, { recursive: true });
+
+    // 调用 Edge 命令行进行扩展包打包
+    const packCmd = `"${edgeExe}" --pack-extension="${stagingDir}"${keyArg} --user-data-dir="${tempProfileDir}" --no-message-box`;
+    execSync(packCmd, { stdio: "ignore" });
+
+    // Edge 默认在 stagingDir 的同级目录输出 <stagingDirName>.crx 和 <stagingDirName>.pem
+    const defaultCrx = `${stagingDir}.crx`;
+    const defaultPem = `${stagingDir}.pem`;
+    const finalCrxPath = path.join(
+      distDir,
+      `Aria2-Next-Explorer-Edge-v${version}.crx`
+    );
+
+    // 如果首次打包生成了私钥，自动持久化保存到 scripts/developer-key.pem，确保后续版本拥有相同的扩展 ID
+    if (fs.existsSync(defaultPem) && !fs.existsSync(keyPath)) {
+      fs.copyFileSync(defaultPem, keyPath);
+      console.log(`🔑 已自动保存开发者私钥至: ${keyPath}`);
+    }
+
+    // 清理 staging 同级生成的临时 pem
+    if (fs.existsSync(defaultPem)) {
+      fs.unlinkSync(defaultPem);
+    }
+
+    // 重命名并移动 crx 到最终规范名称
+    if (fs.existsSync(defaultCrx)) {
+      if (fs.existsSync(finalCrxPath)) {
+        fs.unlinkSync(finalCrxPath);
+      }
+      fs.renameSync(defaultCrx, finalCrxPath);
+      return finalCrxPath;
+    }
+  } catch (err) {
+    console.warn(`⚠️ 打包 .crx 时发生异常: ${err.message}`);
+  } finally {
+    // 清理临时 profile 目录
+    if (fs.existsSync(tempProfileDir)) {
+      try {
+        fs.rmSync(tempProfileDir, { recursive: true, force: true });
+      } catch (e) {
+        // 允许静默忽略
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * 主打包流程
  */
 function runPackaging() {
@@ -102,18 +214,23 @@ function runPackaging() {
   fs.mkdirSync(DIST_DIR, { recursive: true });
   fs.mkdirSync(STAGING_DIR, { recursive: true });
 
+  // 3.5 自动执行现代化 WebUI 构建
+  console.log("⚡ 正在执行 Vue 3 现代化 WebUI 编译构建 (pnpm run build)...");
+  try {
+    execSync("pnpm run build", { cwd: ROOT_DIR, stdio: "inherit" });
+  } catch (buildErr) {
+    console.error("❌ WebUI 构建失败:", buildErr.message);
+    process.exit(1);
+  }
+
   // 4. 定义需要打包的文件与目录清单
   const includeEntries = [
     "manifest.json",
-    "background.js",
-    "options.html",
-    "aria2.html",
     "acknowledgment.txt",
     "_locales",
-    "js",
-    "css",
     "images",
-    "ui",
+    "src",
+    "webui",
   ];
 
   console.log("📦 正在复制扩展必要资源文件至发布暂存目录...");
@@ -130,7 +247,11 @@ function runPackaging() {
 
     const stat = fs.statSync(srcPath);
     if (stat.isDirectory()) {
-      copyDirSync(srcPath, destPath, [".git", ".DS_Store", "Thumbs.db"]);
+      // 复制 src 目录时排除未编译的 webui 源码目录，已编译产物直接取 webui/ 目录
+      const excludes = entryName === "src" 
+        ? ["webui", ".git", ".DS_Store", "Thumbs.db"]
+        : [".git", ".DS_Store", "Thumbs.db"];
+      copyDirSync(srcPath, destPath, excludes);
     } else if (stat.isFile()) {
       fs.copyFileSync(srcPath, destPath);
     }
@@ -181,7 +302,32 @@ function runPackaging() {
     process.exit(1);
   }
 
-  // 7. 统计输出
+  // 7. 生成 CRX 离线安装包
+  console.log(`📦 正在检查环境并生成 Edge .crx 格式安装包...`);
+  const edgeExe = findEdgeExecutable();
+  let crxFilePath = null;
+  let crxSizeInMB = null;
+
+  if (edgeExe) {
+    console.log(`🌐 发现 Edge/Chromium 内核执行程序: ${edgeExe}`);
+    crxFilePath = packCrxExtension(
+      edgeExe,
+      STAGING_DIR,
+      DIST_DIR,
+      manifest.version
+    );
+    if (crxFilePath && fs.existsSync(crxFilePath)) {
+      const crxStat = fs.statSync(crxFilePath);
+      crxSizeInMB = (crxStat.size / (1024 * 1024)).toFixed(2);
+      console.log(`✅ 成功生成 .crx 安装包: ${path.basename(crxFilePath)}`);
+    } else {
+      console.warn("⚠️ 未能生成 .crx 文件，请参考下方 ZIP 方式使用。");
+    }
+  } else {
+    console.warn("⚠️ 未检测到可用的 Edge/Chrome 浏览器核心路径，跳过 .crx 自动打包。");
+  }
+
+  // 8. 统计输出
   const zipStat = fs.statSync(zipFilePath);
   const sizeInMB = (zipStat.size / (1024 * 1024)).toFixed(2);
 
@@ -194,19 +340,24 @@ function runPackaging() {
   );
   console.log(`📁 1. 解压版目录 (开发模式直接加载):`);
   console.log(`   ${STAGING_DIR}`);
-  console.log(`📦 2. ZIP 压缩包 (分发发布/商城上传):`);
+  console.log(`📦 2. ZIP 压缩包 (商城上传 / 归档分发):`);
   console.log(`   ${zipFilePath} (${sizeInMB} MB)`);
+  if (crxFilePath) {
+    console.log(`💿 3. CRX 离线安装包 (Edge 拖拽一键安装):`);
+    console.log(`   ${crxFilePath} (${crxSizeInMB} MB)`);
+  }
   console.log(
     "-----------------------------------------------------------------",
   );
-  console.log("💡 如何在 Microsoft Edge 浏览器中安装测试此插件：");
-  console.log("   步骤 1: 打开 Edge 浏览器，在地址栏输入: edge://extensions");
-  console.log("   步骤 2: 打开左侧边栏底部的【开发人员模式】开关");
-  console.log("   步骤 3: 点击顶部的【加载解压缩的扩展】按钮");
-  console.log(`   步骤 4: 选择上述目录: ${STAGING_DIR}`);
-  console.log(
-    "   步骤 5: 开启右上角拼图图标中的 Aria2-Next-Explorer，即可开始使用！",
-  );
+  console.log("💡 如何在 Microsoft Edge 浏览器中安装此插件：");
+  console.log("   方法 A (推荐，CRX 拖拽安装):");
+  console.log("     1. 打开 Edge 浏览器，访问 edge://extensions");
+  console.log("     2. 开启页面左侧底部的【开发人员模式】开关");
+  console.log(`     3. 将 ${path.basename(crxFilePath || '扩展包.crx')} 文件直接拖拽进该网页即可完成安装！`);
+  console.log("   方法 B (解压目录直接加载):");
+  console.log("     1. 打开 Edge 浏览器，访问 edge://extensions");
+  console.log("     2. 开启左侧【开发人员模式】开关");
+  console.log("     3. 点击【加载解压缩的扩展】按钮，选中上述解压版目录即可！");
   console.log(
     "=================================================================",
   );
