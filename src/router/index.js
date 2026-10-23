@@ -11,8 +11,21 @@ import { ref } from "vue";
 
 export const currentRoute = ref(parseHash(window.location.hash));
 
+function getDefaultPage() {
+  try {
+    const saved = localStorage.getItem("AriaNg.Options");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.defaultTaskPage) return parsed.defaultTaskPage;
+    }
+  } catch (e) {}
+  return "downloading";
+}
+
 function parseHash(hashStr) {
-  let hash = hashStr || "#!/downloading";
+  const defaultPage = getDefaultPage();
+  let hash = hashStr || `#!/${defaultPage}`;
+  if (hash === "#" || hash === "#!" || hash === "#!/") hash = `#!/${defaultPage}`;
   if (hash.startsWith("#!")) hash = hash.substring(2);
   else if (hash.startsWith("#")) hash = hash.substring(1);
 
@@ -61,8 +74,8 @@ function parseHash(hashStr) {
   // 默认 fallback
   return {
     name: "task-list",
-    filter: "downloading",
-    path: "/downloading",
+    filter: defaultPage,
+    path: `/${defaultPage}`,
     query,
     params: {},
   };

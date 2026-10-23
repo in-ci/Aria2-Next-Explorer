@@ -35,7 +35,17 @@
         <!-- 1. 全局偏好设置 (Global) -->
         <div v-show="currentTab === 'global'" class="tab-pane active">
           <div class="settings-table striped hoverable">
-            <!-- 语言设置 (仅保留简体中文和英文) -->
+            <!-- 客户端版本 (AriaNg Version) -->
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("AriaNg Version") }}</span>
+              </div>
+              <div class="setting-value col-sm-8">
+                <span>{{ ariaNgVersion }}</span>
+              </div>
+            </div>
+
+            <!-- 语言设置 (Language: 仅保留简体中文和英文) -->
             <div class="row">
               <div class="setting-key setting-key-without-desc col-sm-4">
                 <span>{{ $t("Language") }}</span>
@@ -50,7 +60,7 @@
               </div>
             </div>
 
-            <!-- 主题设置 -->
+            <!-- 主题设置 (Theme: 仅保留经典与深色) -->
             <div class="row">
               <div class="setting-key setting-key-without-desc col-sm-4">
                 <span>{{ $t("Theme") }}</span>
@@ -58,15 +68,29 @@
               <div class="setting-value col-sm-8">
                 <div class="form-group mb-0">
                   <select class="form-control" v-model="selectedTheme" @change="onThemeChange">
-                    <option value="system">{{ $t("Follow system settings") }}</option>
-                    <option value="dark">{{ $t("Dark") }}</option>
                     <option value="default">{{ $t("Classic") }}</option>
+                    <option value="dark">{{ $t("Dark") }}</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            <!-- 刷新间隔 -->
+            <!-- 动画效果 (Animation Effects) -->
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Animation Effects") }}</span>
+              </div>
+              <div class="setting-value col-sm-8">
+                <div class="form-group mb-0">
+                  <select class="form-control" v-model="animationEffects" @change="onAnimationEffectsChange">
+                    <option :value="true">{{ $t("Enabled") }}</option>
+                    <option :value="false">{{ $t("Disabled") }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 刷新间隔 (Updating Task Information Interval) -->
             <div class="row">
               <div class="setting-key setting-key-without-desc col-sm-4">
                 <span>{{ $t("Updating Task Information Interval") }}</span>
@@ -83,18 +107,76 @@
               </div>
             </div>
 
-            <!-- 紧凑模式 -->
+            <!-- 默认任务列表页面 (Default Tasks Page) -->
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Default Tasks Page") }}</span>
+              </div>
+              <div class="setting-value col-sm-8">
+                <div class="form-group mb-0">
+                  <select class="form-control" v-model="defaultTaskPage" @change="onDefaultTaskPageChange">
+                    <option value="downloading">{{ $t("Downloading") }}</option>
+                    <option value="waiting">{{ $t("Waiting") }}</option>
+                    <option value="stopped">{{ $t("Finished / Stopped") }}</option>
+                    <option value="all">{{ $t("All Tasks") }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 创建新任务后执行操作 (Action After Creating New Tasks) -->
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Action After Creating New Tasks") }}</span>
+              </div>
+              <div class="setting-value col-sm-8">
+                <div class="form-group mb-0">
+                  <select class="form-control" v-model="afterCreatingNewTask" @change="onAfterCreatingChange">
+                    <option value="task-list">{{ $t("Navigate to Task List Page") }}</option>
+                    <option value="task-detail">{{ $t("Navigate to Task Detail Page") }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 任务删除前确认 (Confirm Task Removal) -->
+            <div class="row">
+              <div class="setting-key setting-key-without-desc col-sm-4">
+                <span>{{ $t("Confirm Task Removal") }}</span>
+              </div>
+              <div class="setting-value col-sm-8">
+                <div class="form-group mb-0">
+                  <select class="form-control" v-model="confirmTaskRemoval" @change="onConfirmTaskRemovalChange">
+                    <option :value="true">{{ $t("Enabled") }}</option>
+                    <option :value="false">{{ $t("Disabled") }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 紧凑模式 (Compact Mode) -->
             <div class="row">
               <div class="setting-key setting-key-without-desc col-sm-4">
                 <span>{{ $t("Compact Mode") }}</span>
               </div>
               <div class="setting-value col-sm-8">
                 <div class="form-group mb-0">
-                  <select class="form-control" v-model="store.compactMode" @change="saveSettings">
+                  <select class="form-control" v-model="store.compactMode" @change="onCompactModeChange">
                     <option :value="true">{{ $t("Enabled") }}</option>
                     <option :value="false">{{ $t("Disabled") }}</option>
                   </select>
                 </div>
+              </div>
+            </div>
+
+            <!-- 重置设置提示与操作行 -->
+            <div class="row tip no-background no-hover">
+              <div class="col-sm-12 d-flex align-items-center">
+                <span class="asterisk text-danger mr-1">*</span>
+                <span class="text-muted mr-3">{{ $t("Changes to the settings take effect after refreshing page.") }}</span>
+                <button class="btn btn-xs btn-default btn-outline-secondary" @click="resetAllSettings">
+                  <span>{{ $t("Reset Settings") }}</span>
+                </button>
               </div>
             </div>
           </div>
@@ -194,14 +276,19 @@
 
 <script setup>
 import { ref } from "vue";
-import { store, rpcList, applyTheme, switchRpcServer } from "../store";
-import { setLanguage, currentLang } from "../i18n";
+import { store, rpcList, applyTheme, applyAnimationEffects, switchRpcServer } from "../store";
+import { setLanguage, currentLang, t } from "../i18n";
 
 const currentTab = ref("global");
 const showSecret = ref(false);
+const ariaNgVersion = ref("3.0.0 (Vue3 Edition)");
 const selectedLanguage = ref(currentLang.value);
-const selectedTheme = ref(store.theme);
+const selectedTheme = ref(store.options.theme || "default");
+const animationEffects = ref(store.options.animationEffects !== false);
 const refreshInterval = ref(store.options.downloadTaskRefreshInterval || 1000);
+const defaultTaskPage = ref(store.options.defaultTaskPage || "downloading");
+const afterCreatingNewTask = ref(store.options.afterCreatingNewTask || "task-list");
+const confirmTaskRemoval = ref(store.options.confirmTaskRemoval !== false);
 
 function onLanguageChange() {
   setLanguage(selectedLanguage.value);
@@ -213,9 +300,75 @@ function onThemeChange() {
   applyTheme(selectedTheme.value);
 }
 
+function onAnimationEffectsChange() {
+  applyAnimationEffects(animationEffects.value);
+}
+
 function onIntervalChange() {
   store.options.downloadTaskRefreshInterval = refreshInterval.value;
   saveSettings();
+}
+
+function onDefaultTaskPageChange() {
+  store.options.defaultTaskPage = defaultTaskPage.value;
+  saveSettings();
+}
+
+function onAfterCreatingChange() {
+  store.options.afterCreatingNewTask = afterCreatingNewTask.value;
+  saveSettings();
+}
+
+function onConfirmTaskRemovalChange() {
+  store.options.confirmTaskRemoval = confirmTaskRemoval.value;
+  saveSettings();
+}
+
+function onCompactModeChange() {
+  store.options.compactMode = store.compactMode;
+  saveSettings();
+}
+
+function resetAllSettings() {
+  if (window.confirm(t("Are you sure you want to reset all settings?"))) {
+    try {
+      localStorage.removeItem("AriaNg.Options");
+    } catch (e) {}
+
+    const defaultOpts = {
+      language: "zh_CN",
+      theme: "default",
+      animationEffects: true,
+      compactMode: false,
+      displayOrder: "default:asc",
+      globalStatRefreshInterval: 1000,
+      downloadTaskRefreshInterval: 1000,
+      defaultTaskPage: "downloading",
+      afterCreatingNewTask: "task-list",
+      confirmTaskRemoval: true,
+      rpcAlias: "Aria2-Next",
+      rpcHost: "localhost",
+      rpcPort: "6800",
+      rpcInterface: "jsonrpc",
+      protocol: "http",
+      secret: "",
+      extendRpcServers: [],
+    };
+    store.options = defaultOpts;
+    selectedLanguage.value = "zh_CN";
+    selectedTheme.value = "default";
+    animationEffects.value = true;
+    refreshInterval.value = 1000;
+    defaultTaskPage.value = "downloading";
+    afterCreatingNewTask.value = "task-list";
+    confirmTaskRemoval.value = true;
+    store.compactMode = false;
+
+    setLanguage("zh_CN");
+    applyTheme("default");
+    applyAnimationEffects(true);
+    saveSettings();
+  }
 }
 
 function saveSettings() {

@@ -10,7 +10,7 @@
 import { reactive, ref, computed, markRaw } from "vue";
 import { Aria2Client } from "../api/aria2";
 import { getErrorDescription } from "../api/aria2-errors";
-import { currentLang, setLanguage } from "../i18n";
+import { currentLang, setLanguage, t } from "../i18n";
 
 const LOCAL_STORAGE_KEY = "AriaNg.Options";
 
@@ -20,11 +20,15 @@ const LOCAL_STORAGE_KEY = "AriaNg.Options";
 function loadSavedOptions() {
   const defaultOpts = {
     language: "zh_CN",
-    theme: "system",
+    theme: "default",
+    animationEffects: true,
     compactMode: false,
     displayOrder: "default:asc",
     globalStatRefreshInterval: 1000,
     downloadTaskRefreshInterval: 1000,
+    defaultTaskPage: "downloading",
+    afterCreatingNewTask: "task-list",
+    confirmTaskRemoval: true,
     rpcAlias: "Aria2-Next",
     rpcHost: "localhost",
     rpcPort: "6800",
@@ -39,7 +43,11 @@ function loadSavedOptions() {
 
   try {
     const parsed = JSON.parse(raw);
-    return { ...defaultOpts, ...parsed };
+    const merged = { ...defaultOpts, ...parsed };
+    if (merged.theme !== "dark" && merged.theme !== "default") {
+      merged.theme = "default";
+    }
+    return merged;
   } catch (e) {
     return defaultOpts;
   }
@@ -61,7 +69,7 @@ const savedConfig = loadSavedOptions();
 export const store = reactive({
   // 配置项
   options: savedConfig,
-  theme: savedConfig.theme || "system",
+  theme: savedConfig.theme || "default",
   compactMode: savedConfig.compactMode || false,
   displayOrder: savedConfig.displayOrder || "default:asc",
   searchQuery: "",
@@ -299,8 +307,9 @@ export function initStore() {
     refreshData();
   }, store.options.downloadTaskRefreshInterval || 1000);
 
-  // 初始化主题与多语言
-  applyTheme(store.theme);
+  // 初始化主题、动画效果与多语言
+  applyTheme(store.options.theme || "default");
+  applyAnimationEffects(store.options.animationEffects !== false);
   setLanguage(store.options.language === "en" ? "en" : "zh_CN");
 }
 
@@ -320,22 +329,35 @@ export function switchRpcServer(index) {
 }
 
 /**
- * 切换主题外观 (system / dark / default)
+ * 切换主题外观 (仅支持 经典 default 与 深色 dark)
  */
 export function applyTheme(theme) {
-  store.theme = theme;
-  store.options.theme = theme;
+  const targetTheme = theme === "dark" ? "dark" : "default";
+  store.theme = targetTheme;
+  store.options.theme = targetTheme;
   saveOptions(store.options);
 
   const root = document.documentElement;
-  root.classList.remove("dark-theme", "light-theme", "theme-system");
+  root.classList.remove("dark-theme", "light-theme", "theme-system", "theme-skyblue", "theme-sapphire", "theme-pink");
 
-  if (theme === "dark") {
-    root.classList.add("dark-theme");
-  } else if (theme === "system") {
-    root.classList.add("theme-system");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (prefersDark) root.classList.add("dark-theme");
+  if (targetTheme === "dark") {
+    root.classList.add("dark-theme", "theme-dark");
+  } else {
+    root.classList.remove("theme-dark");
+  }
+}
+
+/**
+ * 切换动画效果 (Enabled / Disabled)
+ */
+export function applyAnimationEffects(enabled) {
+  store.options.animationEffects = enabled;
+  saveOptions(store.options);
+  const root = document.documentElement;
+  if (enabled === false) {
+    root.classList.add("reduced-motion");
+  } else {
+    root.classList.remove("reduced-motion");
   }
 }
 
@@ -346,6 +368,13 @@ export async function batchAction(action, gids = []) {
   if (!store.client) return;
   const targetGids = gids.length > 0 ? gids : Array.from(store.selectedGids);
   if (targetGids.length === 0) return;
+
+  if (action === "remove" && store.options.confirmTaskRemoval !== false) {
+    const msg = t("Are you sure you want to remove the selected task?");
+    if (!window.confirm(msg)) {
+      return;
+    }
+  }
 
   const promises = targetGids.map((gid) => {
     if (action === "pause") return store.client.pause(gid).catch(() => {});

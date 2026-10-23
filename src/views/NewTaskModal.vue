@@ -158,7 +158,7 @@ function onFileChange(e) {
 }
 
 function cancel() {
-  navigate("/downloading");
+  navigate(`/${store.options.defaultTaskPage || "downloading"}`);
 }
 
 async function submitTask() {
@@ -170,17 +170,24 @@ async function submitTask() {
   if (startPaused.value) taskOpts.pause = "true";
 
   try {
+    let lastGid = null;
     if (currentTab.value === "links") {
       for (const url of validUrls.value) {
-        await store.client.addUri([url], taskOpts);
+        const res = await store.client.addUri([url], taskOpts);
+        if (res) lastGid = res;
       }
     } else if (currentTab.value === "torrent" && torrentFile.value) {
       const base64 = await fileToBase64(torrentFile.value);
-      await store.client.addTorrent(base64, [], taskOpts);
+      const res = await store.client.addTorrent(base64, [], taskOpts);
+      if (res) lastGid = res;
     }
 
     await refreshData();
-    navigate("/downloading");
+    if (store.options.afterCreatingNewTask === "task-detail" && lastGid) {
+      navigate(`/task/detail/${lastGid}`);
+    } else {
+      navigate(`/${store.options.defaultTaskPage || "downloading"}`);
+    }
   } catch (err) {
     alert(`Failed to add task: ${err.message}`);
   }

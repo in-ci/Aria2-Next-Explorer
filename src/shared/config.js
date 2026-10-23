@@ -3,7 +3,7 @@ export const DEBUG = false;
 
 export const DefaultAriaNgOptions = {
   language: "TBD",
-  theme: "system",
+  theme: "default",
   title: "${downspeed}, ${upspeed} - ${title}",
   titleRefreshInterval: 3000,
   browserNotification: false,
