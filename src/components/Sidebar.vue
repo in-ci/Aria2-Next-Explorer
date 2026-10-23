@@ -43,7 +43,7 @@
 
     <!-- 侧边导航项 -->
     <section class="sidebar">
-      <ul id="sidebar-menu" class="nav nav-sidebar flex-column">
+      <ul id="sidebar-menu" class="nav nav-sidebar flex-column nav-child-indent">
         <!-- 任务分类 -->
         <li class="nav-header bg-gray-dark-blur">{{ $t("Download") }}</li>
 
@@ -53,6 +53,7 @@
             class="nav-link"
             :class="{ active: currentRoute.path === '/downloading' }"
             href="#!/downloading"
+            :title="$t('Downloading')"
           >
             <i class="nav-icon fa fa-arrow-circle-o-down"></i>
             <p>
@@ -70,6 +71,7 @@
             class="nav-link"
             :class="{ active: currentRoute.path === '/waiting' }"
             href="#!/waiting"
+            :title="$t('Waiting')"
           >
             <i class="nav-icon fa fa-clock-o"></i>
             <p>
@@ -87,6 +89,7 @@
             class="nav-link"
             :class="{ active: currentRoute.path === '/stopped' }"
             href="#!/stopped"
+            :title="$t('Finished / Stopped')"
           >
             <i class="nav-icon fa fa-check-circle-o"></i>
             <p>
@@ -104,6 +107,7 @@
             class="nav-link"
             :class="{ active: currentRoute.path === '/all' }"
             href="#!/all"
+            :title="$t('All Tasks')"
           >
             <i class="nav-icon fa fa-dot-circle-o"></i>
             <p>
@@ -124,6 +128,7 @@
             class="nav-link"
             :class="{ active: currentRoute.path === '/settings/ariang' }"
             href="#!/settings/ariang"
+            :title="$t('General Settings')"
           >
             <i class="nav-icon fa fa-cog"></i>
             <p>{{ $t("General Settings") }}</p>
@@ -133,27 +138,29 @@
         <!-- Aria2 设置树形菜单 -->
         <li class="nav-item has-treeview" :class="{ 'menu-open': isAria2MenuOpen }">
           <a
-            class="nav-link pointer-cursor d-flex justify-content-between align-items-center"
+            class="nav-link pointer-cursor"
+            :title="$t('Download Settings')"
             @click="isAria2MenuOpen = !isAria2MenuOpen"
           >
-            <p class="mb-0">
-              <i class="nav-icon fa fa-cogs"></i>
+            <i class="nav-icon fa fa-cogs"></i>
+            <p>
               {{ $t("Download Settings") }}
+              <i
+                class="fa right"
+                :class="isAria2MenuOpen ? 'fa-angle-down' : 'fa-angle-right'"
+                style="transform: none !important; -webkit-transform: none !important; transition: transform 0.2s ease;"
+              ></i>
             </p>
-            <i
-              class="fa right"
-              :class="isAria2MenuOpen ? 'fa-angle-down' : 'fa-angle-right'"
-              style="transform: none !important; -webkit-transform: none !important; transition: transform 0.2s ease;"
-            ></i>
           </a>
-          <ul class="nav nav-treeview pl-3" v-show="isAria2MenuOpen">
+          <ul class="nav nav-treeview" v-show="isAria2MenuOpen">
             <li class="nav-item">
               <a
                 class="nav-link"
                 :class="{ active: currentRoute.path === '/settings/aria2/basic' }"
                 href="#!/settings/aria2/basic"
+                :title="$t('Basic Settings')"
               >
-                <i class="fa fa-angle-right nav-icon"></i>
+                <i class="nav-icon fa fa-wrench"></i>
                 <p>{{ $t("Basic Settings") }}</p>
               </a>
             </li>
@@ -162,8 +169,9 @@
                 class="nav-link"
                 :class="{ active: currentRoute.path === '/settings/aria2/http' }"
                 href="#!/settings/aria2/http"
+                :title="$t('HTTP Settings')"
               >
-                <i class="fa fa-angle-right nav-icon"></i>
+                <i class="nav-icon fa fa-globe"></i>
                 <p>{{ $t("HTTP Settings") }}</p>
               </a>
             </li>
@@ -172,8 +180,9 @@
                 class="nav-link"
                 :class="{ active: currentRoute.path === '/settings/aria2/sftp' }"
                 href="#!/settings/aria2/sftp"
+                :title="$t('SFTP Settings')"
               >
-                <i class="fa fa-angle-right nav-icon"></i>
+                <i class="nav-icon fa fa-key"></i>
                 <p>{{ $t("SFTP Settings") }}</p>
               </a>
             </li>
@@ -182,8 +191,9 @@
                 class="nav-link"
                 :class="{ active: currentRoute.path === '/settings/aria2/bt' }"
                 href="#!/settings/aria2/bt"
+                :title="$t('BitTorrent Settings')"
               >
-                <i class="fa fa-angle-right nav-icon"></i>
+                <i class="nav-icon fa fa-magnet"></i>
                 <p>{{ $t("BitTorrent Settings") }}</p>
               </a>
             </li>
@@ -192,8 +202,9 @@
                 class="nav-link"
                 :class="{ active: currentRoute.path === '/settings/aria2/ed2k' }"
                 href="#!/settings/aria2/ed2k"
+                :title="$t('ED2K Settings') || 'ED2K 设置'"
               >
-                <i class="fa fa-angle-right nav-icon"></i>
+                <i class="nav-icon fa fa-exchange"></i>
                 <p>{{ $t("ED2K Settings") || "ED2K 设置" }}</p>
               </a>
             </li>
@@ -202,8 +213,9 @@
                 class="nav-link"
                 :class="{ active: currentRoute.path === '/settings/aria2/media' }"
                 href="#!/settings/aria2/media"
+                :title="$t('Media Stream Settings') || '媒体流设置'"
               >
-                <i class="fa fa-angle-right nav-icon"></i>
+                <i class="nav-icon fa fa-film"></i>
                 <p>{{ $t("Media Stream Settings") || "媒体流设置" }}</p>
               </a>
             </li>
@@ -212,8 +224,9 @@
                 class="nav-link"
                 :class="{ active: currentRoute.path === '/settings/aria2/metalink' }"
                 href="#!/settings/aria2/metalink"
+                :title="$t('Metalink Settings') || 'Metalink 设置'"
               >
-                <i class="fa fa-angle-right nav-icon"></i>
+                <i class="nav-icon fa fa-link"></i>
                 <p>{{ $t("Metalink Settings") || "Metalink 设置" }}</p>
               </a>
             </li>
@@ -222,8 +235,9 @@
                 class="nav-link"
                 :class="{ active: currentRoute.path === '/settings/aria2/rpc' }"
                 href="#!/settings/aria2/rpc"
+                :title="$t('RPC Settings')"
               >
-                <i class="fa fa-angle-right nav-icon"></i>
+                <i class="nav-icon fa fa-plug"></i>
                 <p>{{ $t("RPC Settings") }}</p>
               </a>
             </li>
@@ -232,8 +246,9 @@
                 class="nav-link"
                 :class="{ active: currentRoute.path === '/settings/aria2/advanced' }"
                 href="#!/settings/aria2/advanced"
+                :title="$t('Advanced Settings')"
               >
-                <i class="fa fa-angle-right nav-icon"></i>
+                <i class="nav-icon fa fa-sliders"></i>
                 <p>{{ $t("Advanced Settings") }}</p>
               </a>
             </li>
@@ -246,6 +261,7 @@
             class="nav-link"
             :class="{ active: currentRoute.path === '/status' }"
             href="#!/status"
+            :title="$t('Downloader Information')"
           >
             <i class="nav-icon fa fa-server"></i>
             <p>
