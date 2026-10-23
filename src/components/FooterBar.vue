@@ -7,6 +7,8 @@
           <li class="nav-item">
             <a
               class="nav-link pointer-cursor"
+              data-widget="pushmenu"
+              role="button"
               :title="$t('Toggle Navigation')"
               @click="$emit('toggleSidebar')"
             >
