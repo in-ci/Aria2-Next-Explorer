@@ -78,8 +78,13 @@ function updateContentHeight() {
   const footer = document.querySelector(".main-footer");
   const hHeight = header ? header.offsetHeight : 41;
   const fHeight = footer ? footer.offsetHeight : 41;
+  const exactHeight = `${windowHeight - hHeight - fHeight}px`;
+  const contentWrapper = document.getElementById("content-wrapper");
+  if (contentWrapper) {
+    contentWrapper.style.height = exactHeight;
+  }
   if (contentBodyRef.value) {
-    contentBodyRef.value.style.height = `${windowHeight - hHeight - fHeight}px`;
+    contentBodyRef.value.style.height = exactHeight;
   }
 }
 
@@ -118,8 +123,9 @@ body,
 }
 
 .content-wrapper {
-  margin-top: 41px;
-  margin-bottom: 41px;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
   height: calc(100vh - 82px);
   overflow: hidden;
 }
