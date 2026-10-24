@@ -2,7 +2,6 @@ import { ConfigService } from "../shared/services/ConfigService.js";
 import { UIController } from "./UIController.js";
 import { RpcManager } from "./RpcManager.js";
 import { WelcomeTour } from "./WelcomeTour.js";
-import { HelpDialog } from "./HelpDialog.js";
 import Utils from "../shared/utils.js";
 import Logger from "../shared/logger.js";
 
@@ -33,9 +32,6 @@ class OptionsApp {
 
     // Bind button events
     this.#bindButtonEvents();
-
-    // Setup help dialog
-    HelpDialog.init();
   }
 
   /**

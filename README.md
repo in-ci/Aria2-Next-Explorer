@@ -127,25 +127,11 @@
    - 运行本地 `aria2-next.exe --conf-path=aria2.conf` 或执行启动脚本（例如 `Aria2_Start_No_Delay.vbs`）。
 2. **注册一键唤醒协议（可选，Windows）**：
    - 双击运行本项目的 `scripts/register-aria2-next-protocol.bat` 脚本，可为当前用户关联 `aria2-next://` 与 `aria2://` 协议。
-   - 关联后，在扩展内点击“启动 Aria2-Next”或按下快捷键 `Alt + X` 即可在后台静默唤醒核心！
+   - 关联后，在扩展内点击“启动 Aria2-Next”即可在后台静默唤醒核心！
 3. **加载扩展**：
    - 打开 Chrome / Edge 浏览器，访问 `chrome://extensions/` 或 `edge://extensions/`；
    - 开启右上角的“开发者模式”；
    - 点击“加载已解压的扩展程序”，选择本项目根目录即可完成安装。
-
----
-
-## 🔑 常用快捷键
-
-| 快捷键 | 功能说明 |
-| :--- | :--- |
-| **Alt + A** | 全局切换下载自动拦截开关（开/关） |
-| **Alt + X** | 唤醒/启动本地 Aria2-Next 核心（Windows） |
-| **S** / **Alt + S** | 在扩展配置选项页面中保存设置 |
-| **R** / **Alt + R** | 在扩展配置选项页面中重置设置 |
-| **?** | 在扩展选项页面中唤起帮助与快捷键弹窗 |
-
-*注：可在浏览器 `edge://extensions/shortcuts` 或 `chrome://extensions/shortcuts` 中自定义扩展快捷键。*
 
 ---
 

@@ -6,7 +6,7 @@
   "minimum_chrome_version": "116.0.0",
   "default_locale": "en",
   "description": "__MSG_description__",
-  "homepage_url": "https://github.com/AnInsomniacy/aria2-next",
+  "homepage_url": "https://github.com/in-ci/Aria2-Next-Explorer",
   "options_page": "src/options/options.html",
   "permissions": [
     "cookies",
@@ -47,14 +47,6 @@
     "48": "images/logo48.png",
     "64": "images/logo64.png",
     "128": "images/logo128.png"
-  },
-  "commands": {
-    "toggle-capture": {
-      "suggested_key": {
-        "default": "Alt+A"
-      },
-      "description": "__MSG_toggleCapture__"
-    }
   },
   "externally_connectable": {
     "ids": [

@@ -108,25 +108,11 @@ By default, Aria2-Next listens for JSON-RPC connections at `http://localhost:680
    - Run `aria2-next.exe --conf-path=aria2.conf` or your launch script (e.g. `Aria2_Start_No_Delay.vbs`).
 2. **Register Protocol Handler (Windows, Optional)**:
    - Run `scripts/register-aria2-next-protocol.bat` to register `aria2-next://` and `aria2://` handlers in Windows HKCU.
-   - Once registered, pressing `Alt + X` or clicking "Start Aria2-Next" in the extension menu silently wakes up your core!
+   - Once registered, clicking "Start Aria2-Next" in the extension menu silently wakes up your core!
 3. **Load Extension**:
    - In Chrome or Edge, navigate to `chrome://extensions/`.
    - Enable **Developer mode** in the top right corner.
    - Click **Load unpacked** and select the repository root directory.
-
----
-
-## 🔑 Keyboard Shortcuts
-
-| Shortcut | Description |
-| :--- | :--- |
-| **Alt + A** | Toggle download capture (On / Off) |
-| **Alt + X** | Launch local Aria2-Next core (Windows) |
-| **S** / **Alt + S** | Save settings in Extension Options page |
-| **R** / **Alt + R** | Reset settings in Extension Options page |
-| **?** | Open help and shortcuts dialog in Options page |
-
-*Customize shortcuts anytime at `chrome://extensions/shortcuts`.*
 
 ---
 

@@ -22,7 +22,6 @@ export class EventHandler {
     this.#registerTabListeners();
     this.#registerWindowListeners();
     this.#registerNotificationListeners();
-    this.#registerCommandListeners();
     this.#registerRuntimeListeners();
     // Note: Storage listeners removed - ConfigService handles config changes
   }
@@ -100,18 +99,6 @@ export class EventHandler {
         chrome.notifications.clear(nid);
       },
     );
-  }
-
-  /**
-   * Register command listeners
-   */
-  #registerCommandListeners() {
-    chrome.commands.onCommand.addListener(async (command) => {
-      if (command === "toggle-capture") {
-        const current = this.configService.get("integration");
-        await this.configService.set({ integration: !current });
-      }
-    });
   }
 
   /**

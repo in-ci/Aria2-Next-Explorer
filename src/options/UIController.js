@@ -4,8 +4,6 @@
 import Utils from "../shared/utils.js";
 import Logger from "../shared/logger.js";
 
-const SHORTCUTS_PAGE_URL = "chrome://extensions/shortcuts";
-
 const ColorModeList = [
   { name: "light", icon: "fa-sun", title: "LightMode" },
   { name: "dark", icon: "fa-moon", title: "DarkMode" },
@@ -40,11 +38,8 @@ export class UIController {
     this.configService = ConfigService.getInstance();
     this.rpcManager = rpcManager;
     this.mediaQueryList = null;
-    // Store bound listener refs for clean removal
-    this._keydownHandler = (e) => this.#handleKeyboardShortcuts(e);
     this._scrollHandler = null;
     this._savedSnapshot = "";
-    this._focusHandler = () => this.updateCommandShortcuts();
   }
 
   /**
@@ -65,7 +60,6 @@ export class UIController {
     this.#setupVersionInfo();
     this.captureSnapshot();
     this.#bindChangeWatcher();
-    await this.updateCommandShortcuts();
   }
 
   /**
@@ -150,14 +144,6 @@ export class UIController {
    * Bind events
    */
   #bindEvents() {
-    // Shortcuts setting
-    const shortcutsBtn = QS("#shortcuts-setting");
-    if (shortcutsBtn) {
-      const fresh = shortcutsBtn.cloneNode(true);
-      shortcutsBtn.replaceWith(fresh);
-      fresh.addEventListener("click", () => this.openShortcutsPage());
-    }
-
     // Color mode toggle
     const colorModeBtn = QS("#colorMode");
     if (colorModeBtn) {
@@ -172,19 +158,6 @@ export class UIController {
       form.addEventListener("submit", (e) => e.preventDefault());
       form.addEventListener("reset", (e) => e.preventDefault());
     }
-
-    // Keyboard shortcuts
-    window.removeEventListener("keydown", this._keydownHandler);
-    window.removeEventListener("focus", this._focusHandler);
-    if (this._scrollHandler) {
-      window.removeEventListener("scroll", this._scrollHandler);
-      this._scrollHandler = null;
-    }
-    window.addEventListener("keydown", this._keydownHandler);
-
-    // Window focus listener to refresh real command shortcuts if modified in shortcuts page
-    window.removeEventListener("focus", this._focusHandler);
-    window.addEventListener("focus", this._focusHandler);
 
     // Auto-hide header on scroll down, restore on scroll up
     if (this._scrollHandler) {
@@ -207,10 +180,6 @@ export class UIController {
     // System color scheme listener
     this.mediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
     this.mediaQueryList.onchange = () => this.#setColorMode();
-
-    // WebStore link
-    const storeLink = QS("#webStoreUrl");
-    if (storeLink) storeLink.href = Utils.getWebStoreUrl();
 
     // WebUI open style change listener to toggle windowBlurClose option smoothly
     QSA("input[name=webUIOpenStyle]").forEach((radio) => {
@@ -249,26 +218,6 @@ export class UIController {
   }
 
   /**
-   * Open shortcuts settings page
-   */
-  openShortcutsPage() {
-    chrome.tabs.query({ url: SHORTCUTS_PAGE_URL }).then((tabs) => {
-      if (tabs?.length > 0) {
-        chrome.windows.update(tabs[0].windowId, { focused: true });
-        chrome.tabs.update(tabs[0].id, { active: true });
-      } else {
-        chrome.tabs.getCurrent().then((tab) => {
-          chrome.tabs.create({
-            url: SHORTCUTS_PAGE_URL,
-            openerTabId: tab.id,
-            index: tab.index + 1,
-          });
-        });
-      }
-    });
-  }
-
-  /**
    * Toggle color mode
    */
   async #toggleColorMode() {
@@ -296,42 +245,6 @@ export class UIController {
       iconEl.classList.remove("fa-moon", "fa-sun", "fa-circle-half-stroke");
       iconEl.classList.add(mode.icon);
       iconEl.title = chrome.i18n.getMessage(mode.title);
-    }
-  }
-
-  /**
-   * Handle keyboard shortcuts
-   */
-  #handleKeyboardShortcuts(e) {
-    // Ignore when holding Ctrl or Meta (Command) to avoid hijacking browser shortcuts
-    if (e.ctrlKey || e.metaKey) return;
-
-    // Suppress page shortcuts when any modal dialog is open (e.g. help modal)
-    if (document.querySelector("dialog[open]")) return;
-
-    // Don't trigger single keys while typing in text inputs or textareas
-    const isTyping = Boolean(
-      e.target.closest(
-        'input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]), textarea, [contenteditable="true"]',
-      ),
-    );
-    if (isTyping && !e.altKey) return;
-
-    const actions = {
-      s: "save",
-      r: "reset",
-      u: "upload",
-      j: "download",
-      e: "exportConfig",
-      i: "importConfig",
-    };
-
-    const id = actions[e.key.toLowerCase()];
-    if (id) {
-      e.preventDefault();
-      const btn = document.getElementById(id);
-      btn?.click();
-      btn?.focus({ focusVisible: true });
     }
   }
 
@@ -547,63 +460,13 @@ export class UIController {
   }
 
   /**
-   * Update dynamic command shortcuts (reflect real user configuration)
-   */
-  async updateCommandShortcuts() {
-    if (!chrome?.commands?.getAll) return;
-
-    try {
-      const commands = await chrome.commands.getAll();
-      const notSetText = chrome.i18n.getMessage("shortcutNotSet") || "Not set";
-
-      // 1. Update toggle-capture setting gear button tooltip
-      const toggleCmd = commands.find((c) => c.name === "toggle-capture");
-      const shortcutsBtn = QS("#shortcuts-setting");
-      if (shortcutsBtn) {
-        const rawKey = toggleCmd?.shortcut?.trim();
-        const formattedKey = rawKey ? rawKey.replace(/\+/g, " + ") : "";
-        const tooltip = formattedKey
-          ? `⌨: ${formattedKey}`
-          : `⌨: ${notSetText}`;
-        shortcutsBtn.setAttribute("tooltip-content", tooltip);
-      }
-
-      // 2. Update help dialog global extension shortcuts if present
-      const helpToggleKeys = QS("#helpShortcutToggleCapture");
-      if (helpToggleKeys) {
-        this.#renderCommandKbd(helpToggleKeys, toggleCmd?.shortcut);
-      }
-    } catch (err) {
-      Logger.warn("Failed to update command shortcuts:", err);
-    }
-  }
-
-  /**
-   * Render command kbd badges into container
-   */
-  #renderCommandKbd(container, shortcutStr) {
-    if (!container) return;
-    const raw = shortcutStr?.trim();
-    if (!raw) {
-      const notSetText = chrome.i18n.getMessage("shortcutNotSet") || "Not set";
-      container.innerHTML = `<span class="help-key-not-set">${notSetText}</span>`;
-      return;
-    }
-
-    const keys = raw
-      .split("+")
-      .map((k) => k.trim())
-      .filter(Boolean);
-    container.innerHTML = keys
-      .map((k) => `<kbd>${k}</kbd>`)
-      .join('<span class="help-key-plus">+</span>');
-  }
-
-  /**
    * Cleanup resources
    */
   cleanup() {
-    window.removeEventListener("keydown", this._keydownHandler);
+    if (this._scrollHandler) {
+      window.removeEventListener("scroll", this._scrollHandler);
+      this._scrollHandler = null;
+    }
     if (this.mediaQueryList) {
       this.mediaQueryList.onchange = null;
       this.mediaQueryList = null;
