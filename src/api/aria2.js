@@ -388,4 +388,24 @@ export class Aria2Client {
   shutdown() {
     return this.invoke("aria2.shutdown");
   }
+
+  forceShutdown() {
+    return this.invoke("aria2.forceShutdown");
+  }
+
+  /**
+   * 获取 BitTorrent 运行时会话网络与 DHT 状态 (aria2-next 支持)
+   * @returns {Promise<object>}
+   */
+  getBtSessionStatus() {
+    return this.invoke("aria2.getBtSessionStatus");
+  }
+
+  /**
+   * 获取 ED2K 电驴网络运行时状态 (aria2-next 支持)
+   * @returns {Promise<object>}
+   */
+  getEd2kStatus() {
+    return this.invoke("aria2.getEd2kStatus");
+  }
 }

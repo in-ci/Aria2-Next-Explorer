@@ -154,7 +154,11 @@ export const store = reactive({
   /** Aria2 服务端版本与功能信息 */
   serverInfo: {
     version: "",
+    product: "",
+    rpcVersion: "",
     enabledFeatures: [],
+    mediaFeatures: [],
+    downloadFeatures: [],
     sessionId: "",
   },
 
@@ -402,12 +406,16 @@ export function initStore() {
     if (status === "Connected") {
       // 成功连接后获取版本与会话信息
       store.client.getVersion().then((v) => {
-        store.serverInfo.version = v.version;
+        store.serverInfo.version = v.version || "";
+        store.serverInfo.product = v.product || "aria2";
+        store.serverInfo.rpcVersion = v.rpcVersion || "";
         store.serverInfo.enabledFeatures = v.enabledFeatures || [];
+        store.serverInfo.mediaFeatures = v.mediaFeatures || [];
+        store.serverInfo.downloadFeatures = v.downloadFeatures || [];
       }).catch(() => {});
 
       store.client.getSessionInfo().then((s) => {
-        store.serverInfo.sessionId = s.sessionId;
+        store.serverInfo.sessionId = s.sessionId || "";
       }).catch(() => {});
 
       // 成功连接后立即拉取服务端的全局配置（例如下载目录 dir、并发连接数 split 等）
@@ -466,6 +474,36 @@ export async function fetchGlobalOptions() {
     console.warn("[Store] Failed to fetch global options:", err);
   }
   return store.globalOptions;
+}
+
+/**
+ * 刷新 Aria2 服务端元信息 (版本、特性、会话ID、全局配置等)
+ */
+export async function refreshServerInfo() {
+  if (!store.client) return;
+  try {
+    const [v, s, opts] = await Promise.all([
+      store.client.getVersion().catch(() => null),
+      store.client.getSessionInfo().catch(() => null),
+      store.client.getGlobalOption().catch(() => null),
+    ]);
+    if (v) {
+      store.serverInfo.version = v.version || "";
+      store.serverInfo.product = v.product || "aria2";
+      store.serverInfo.rpcVersion = v.rpcVersion || "";
+      store.serverInfo.enabledFeatures = v.enabledFeatures || [];
+      store.serverInfo.mediaFeatures = v.mediaFeatures || [];
+      store.serverInfo.downloadFeatures = v.downloadFeatures || [];
+    }
+    if (s) {
+      store.serverInfo.sessionId = s.sessionId || "";
+    }
+    if (opts) {
+      store.globalOptions = opts;
+    }
+  } catch (err) {
+    console.warn("[Store] Failed to refresh server info:", err);
+  }
 }
 
 /**
