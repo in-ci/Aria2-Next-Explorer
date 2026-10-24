@@ -1,28 +1,87 @@
 <template>
   <div class="piece-map-container" ref="containerRef">
-    <!-- 图例展示 -->
-    <div class="piece-legends mb-2">
-      <div class="piece-legend">
-        <div class="piece piece-completed"></div>
-        <span>{{ $t("Completed") }} ({{ completedPieces }} / {{ pieceCount }})</span>
+    <!-- 顶部核心指标统计卡片 -->
+    <div class="row piece-stats-row mb-3">
+      <!-- 单块大小 -->
+      <div class="col-6 col-sm-3 mb-2">
+        <div class="piece-stat-card">
+          <div class="piece-stat-label text-muted small">{{ $t("Piece Length") }}</div>
+          <div class="piece-stat-val font-weight-bold">
+            {{ pieceLength > 0 ? formatBytes(pieceLength) : "-" }}
+          </div>
+        </div>
       </div>
-      <div class="piece-legend ml-3">
-        <div class="piece"></div>
-        <span>{{ $t("Uncompleted") }} ({{ pieceCount - completedPieces }} / {{ pieceCount }})</span>
+
+      <!-- 分块总数 -->
+      <div class="col-6 col-sm-3 mb-2">
+        <div class="piece-stat-card">
+          <div class="piece-stat-label text-muted small">{{ $t("Total Pieces") }}</div>
+          <div class="piece-stat-val font-weight-bold">
+            {{ pieceCount.toLocaleString() }}
+          </div>
+        </div>
+      </div>
+
+      <!-- 已完成分块 -->
+      <div class="col-6 col-sm-3 mb-2">
+        <div class="piece-stat-card">
+          <div class="piece-stat-label text-muted small">{{ $t("Completed Pieces") }}</div>
+          <div class="piece-stat-val font-weight-bold text-success">
+            {{ completedPieces.toLocaleString() }}
+          </div>
+        </div>
+      </div>
+
+      <!-- 分块完成率 -->
+      <div class="col-6 col-sm-3 mb-2">
+        <div class="piece-stat-card">
+          <div class="piece-stat-label text-muted small">{{ $t("Completion Rate") }}</div>
+          <div class="piece-stat-val font-weight-bold text-primary">
+            {{ completionRate }}%
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 高性能 Canvas 分片渲染画布 -->
-    <canvas
-      ref="canvasRef"
-      class="piece-map-canvas"
-      @mousemove="handleMouseMove"
-      @mouseleave="hoverIndex = -1"
-    ></canvas>
+    <!-- 图例栏与实时悬浮分块详细信息提示 -->
+    <div class="piece-legends-bar d-flex flex-wrap align-items-center justify-content-between mb-2">
+      <!-- 左侧：图例展示 -->
+      <div class="piece-legends d-flex align-items-center">
+        <div class="piece-legend d-flex align-items-center mr-3">
+          <div class="piece piece-completed mr-1"></div>
+          <span class="small">{{ $t("Completed") }} ({{ completedPieces.toLocaleString() }})</span>
+        </div>
+        <div class="piece-legend d-flex align-items-center">
+          <div class="piece mr-1"></div>
+          <span class="small">{{ $t("Uncompleted") }} ({{ (pieceCount - completedPieces).toLocaleString() }})</span>
+        </div>
+      </div>
 
-    <!-- 鼠标悬停分片编号指示 -->
-    <div v-if="hoverIndex >= 0" class="piece-hover-tip text-muted small mt-1">
-      Piece #{{ hoverIndex }}: {{ isPieceCompleted(hoverIndex) ? $t("Completed") : $t("Uncompleted") }}
+      <!-- 右侧：分块悬浮提示信息（编号、状态与对应数据偏移区间） -->
+      <div class="piece-hover-info small">
+        <template v-if="hoverIndex >= 0">
+          <span class="badge badge-secondary mr-1">#{{ hoverIndex }}</span>
+          <span :class="isPieceCompleted(hoverIndex) ? 'text-success font-weight-bold' : 'text-muted'">
+            {{ isPieceCompleted(hoverIndex) ? $t("Completed") : $t("Uncompleted") }}
+          </span>
+          <span v-if="hoverPieceRange" class="ml-2 font-monospace text-muted">
+            [{{ hoverPieceRange }}]
+          </span>
+        </template>
+        <span v-else class="text-muted">
+          <i class="fa fa-info-circle mr-1"></i>{{ $t("Hover piece to view details") }}
+        </span>
+      </div>
+    </div>
+
+    <!-- 高性能 Canvas 分片渲染画布容器（超大文件自适应内嵌滚动） -->
+    <div class="piece-canvas-wrapper" ref="wrapperRef">
+      <canvas
+        ref="canvasRef"
+        class="piece-map-canvas"
+        @mousemove="handleMouseMove"
+        @mouseleave="handleMouseLeave"
+      ></canvas>
     </div>
   </div>
 </template>
@@ -32,52 +91,95 @@
  * ==============================================================================
  * BT / 多分片下载分片地图组件 (PieceMap)
  * ==============================================================================
- * 基于原生 HTML5 Canvas 2D 渲染海量分片区块（可支撑数万分片无需创建任何 DOM 元素）
- * 彻底消除分片 DOM 爆炸导致的浏览器几十兆内存消耗与页面掉帧
+ * 1. 基于原生 HTML5 Canvas 2D 渲染海量分片区块（可支撑数万分片无需创建任何 DOM 元素）
+ * 2. 结合 ResizeObserver 精确感知容器可见性与宽度变化，彻底消除切换 Tab 时因宽度为 0 导致的折行错位
+ * 3. 支持分块大小、总数、完成率统计与鼠标悬停字节偏移区间查看
  * ==============================================================================
  */
 
-import { ref, onMounted, onUnmounted, watch, computed } from "vue";
-import { parseBitfield } from "../utils/format";
+import { ref, onMounted, onUnmounted, watch, computed, nextTick } from "vue";
+import { parseBitfield, formatBytes } from "../utils/format";
 
 const props = defineProps({
   /** Aria2 十六进制 bitfield 编码字符串 */
   bitfield: { type: String, default: "" },
   /** 分片总数量 */
   pieceCount: { type: Number, default: 0 },
+  /** 单个分片大小（字节） */
+  pieceLength: { type: Number, default: 0 },
+  /** 任务总文件大小（字节） */
+  totalLength: { type: Number, default: 0 },
+  /** 任务当前状态 */
+  taskStatus: { type: String, default: "" },
+  /** 当前 Tab 是否处于激活显示状态 */
+  active: { type: Boolean, default: false },
 });
 
 const containerRef = ref(null);
+const wrapperRef = ref(null);
 const canvasRef = ref(null);
 const hoverIndex = ref(-1);
 
 /** 将 bitfield 解析为布尔状态数组 */
 const pieces = computed(() => {
-  return parseBitfield(props.bitfield, props.pieceCount);
+  // 如果任务已彻底完成，全部区块标为完成
+  if (props.taskStatus?.toLowerCase() === "complete") {
+    return new Array(props.pieceCount).fill(true);
+  }
+  const parsed = parseBitfield(props.bitfield, props.pieceCount);
+  if (parsed.length === 0 && props.pieceCount > 0 && props.bitfield) {
+    return new Array(props.pieceCount).fill(false);
+  }
+  return parsed;
 });
 
 /** 已下载完成的分片总数 */
 const completedPieces = computed(() => {
+  if (props.taskStatus?.toLowerCase() === "complete") {
+    return props.pieceCount;
+  }
   return pieces.value.filter(Boolean).length;
+});
+
+/** 分片完成百分比 */
+const completionRate = computed(() => {
+  if (props.pieceCount <= 0) return "0.00";
+  return ((completedPieces.value / props.pieceCount) * 100).toFixed(2);
 });
 
 /** 判断某个分片是否已完成 */
 function isPieceCompleted(idx) {
+  if (props.taskStatus?.toLowerCase() === "complete") return true;
   return !!pieces.value[idx];
 }
 
-const blockSize = 14;
-const gap = 3;
+/** 计算当前悬浮分块的数据偏移范围 */
+const hoverPieceRange = computed(() => {
+  if (hoverIndex.value < 0 || props.pieceLength <= 0) return "";
+  const start = hoverIndex.value * props.pieceLength;
+  let end = (hoverIndex.value + 1) * props.pieceLength - 1;
+  if (props.totalLength > 0 && end >= props.totalLength) {
+    end = props.totalLength - 1;
+  }
+  return `${formatBytes(start)} ~ ${formatBytes(end)}`;
+});
+
+const blockSize = 13;
+const gap = 2;
+let resizeObserver = null;
 
 /**
  * 重新计算 Canvas 视口并绘制所有分片网格
  */
 function renderCanvas() {
   const canvas = canvasRef.value;
-  const container = containerRef.value;
+  const container = wrapperRef.value || containerRef.value;
   if (!canvas || !container || props.pieceCount <= 0) return;
 
-  const width = container.clientWidth || 600;
+  const width = container.clientWidth;
+  // 若当前容器尚未完全渲染（例如切换 Tab 瞬间处于 display:none，clientWidth 为 0），跳过本次绘制，等待 ResizeObserver 唤醒
+  if (width <= 0) return;
+
   const cols = Math.max(1, Math.floor((width + gap) / (blockSize + gap)));
   const rows = Math.ceil(props.pieceCount / cols);
   const height = rows * (blockSize + gap) - gap;
@@ -94,8 +196,8 @@ function renderCanvas() {
   ctx.clearRect(0, 0, width, height);
 
   const isDark = document.documentElement.classList.contains("dark-theme");
-  const uncompletedColor = isDark ? "rgba(255, 255, 255, 0.12)" : "#e9ecef";
-  const completedColor = "#20c997"; // 经典绿 / 翠绿
+  const uncompletedColor = isDark ? "#2a2d35" : "#e9ecef";
+  const completedColor = "#20c997"; // 经典翠绿
 
   for (let i = 0; i < props.pieceCount; i++) {
     const r = Math.floor(i / cols);
@@ -103,13 +205,14 @@ function renderCanvas() {
     const x = c * (blockSize + gap);
     const y = r * (blockSize + gap);
 
-    ctx.fillStyle = pieces.value[i] ? completedColor : uncompletedColor;
+    ctx.fillStyle = isPieceCompleted(i) ? completedColor : uncompletedColor;
     ctx.fillRect(x, y, blockSize, blockSize);
 
+    // 悬停高亮提示边框
     if (i === hoverIndex.value) {
       ctx.strokeStyle = "#ffc107";
       ctx.lineWidth = 2;
-      ctx.strokeRect(x - 1, y - 1, blockSize + 2, blockSize + 2);
+      ctx.strokeRect(x - 0.5, y - 0.5, blockSize + 1, blockSize + 1);
     }
   }
 
@@ -117,7 +220,7 @@ function renderCanvas() {
 }
 
 /**
- * 响应鼠标移动定位分片索引
+ * 响应鼠标移动精确定位分片索引
  */
 function handleMouseMove(e) {
   const canvas = canvasRef.value;
@@ -133,24 +236,69 @@ function handleMouseMove(e) {
 
   const idx = r * cols + c;
   if (idx >= 0 && idx < props.pieceCount) {
-    hoverIndex.value = idx;
-    renderCanvas();
+    if (hoverIndex.value !== idx) {
+      hoverIndex.value = idx;
+      renderCanvas();
+    }
   } else {
-    hoverIndex.value = -1;
+    if (hoverIndex.value !== -1) {
+      hoverIndex.value = -1;
+      renderCanvas();
+    }
   }
 }
 
-watch([() => props.bitfield, () => props.pieceCount], () => {
-  renderCanvas();
-});
+/**
+ * 鼠标离开画布时清除高亮
+ */
+function handleMouseLeave() {
+  if (hoverIndex.value !== -1) {
+    hoverIndex.value = -1;
+    renderCanvas();
+  }
+}
+
+// 监听 bitfield / pieceCount / taskStatus 更新
+watch(
+  [() => props.bitfield, () => props.pieceCount, () => props.taskStatus],
+  () => {
+    nextTick(() => renderCanvas());
+  }
+);
+
+// 监听 Tab 激活状态：由隐藏变为显示时立即刷新画布
+watch(
+  () => props.active,
+  (isActive) => {
+    if (isActive) {
+      nextTick(() => renderCanvas());
+    }
+  }
+);
 
 onMounted(() => {
-  renderCanvas();
+  nextTick(() => renderCanvas());
+
+  // 绑定 ResizeObserver 实时监听容器尺寸及 display 显隐状态切换
+  if (window.ResizeObserver && containerRef.value) {
+    resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0) {
+          renderCanvas();
+        }
+      }
+    });
+    resizeObserver.observe(containerRef.value);
+  }
+
   window.addEventListener("resize", renderCanvas);
 });
 
-// 卸载时彻底移除全局 resize 监听，杜绝内存泄漏
 onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
   window.removeEventListener("resize", renderCanvas);
 });
 </script>
@@ -159,27 +307,82 @@ onUnmounted(() => {
 .piece-map-container {
   width: 100%;
 }
-.piece-map-canvas {
-  display: block;
-  cursor: crosshair;
+
+/* 顶部统计卡片样式 */
+.piece-stat-card {
+  background-color: var(--card-bg, #f8f9fa);
+  border: 1px solid var(--border-color, #e9ecef);
+  border-radius: 4px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
 }
+
+.piece-stat-label {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.piece-stat-val {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+/* 图例栏 */
+.piece-legends-bar {
+  min-height: 28px;
+}
+
 .piece-legends {
   display: flex;
   align-items: center;
 }
+
 .piece-legend {
   display: flex;
   align-items: center;
 }
+
 .piece {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   background-color: #e9ecef;
-  margin-right: 6px;
   display: inline-block;
   border-radius: 2px;
 }
+
 .piece.piece-completed {
   background-color: #20c997;
+}
+
+/* 画布滚动容器：防止超多区块导致高度溢出页面 */
+.piece-canvas-wrapper {
+  width: 100%;
+  max-height: 480px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid var(--border-color, #e9ecef);
+  border-radius: 4px;
+  background-color: var(--canvas-bg, #fafbfc);
+  padding: 8px;
+}
+
+.piece-map-canvas {
+  display: block;
+  cursor: crosshair;
+}
+
+/* 暗色主题深度适配 */
+:global(.dark-theme) .piece-stat-card {
+  --card-bg: #242424;
+  --border-color: #3c3d3e;
+}
+
+:global(.dark-theme) .piece-canvas-wrapper {
+  --canvas-bg: #1e1e1e;
+  --border-color: #333333;
+}
+
+:global(.dark-theme) .piece:not(.piece-completed) {
+  background-color: #2a2d35;
 }
 </style>

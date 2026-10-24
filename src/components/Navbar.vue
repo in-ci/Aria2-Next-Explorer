@@ -14,7 +14,7 @@
           <li class="nav-item divider"></li>
 
           <!-- 开始任务 -->
-          <li class="nav-item" :class="{ disabled: !hasSelectedTasks }">
+          <li class="nav-item" :class="{ disabled: !isTaskListPage || !hasSelectedTasks }">
             <a
               class="nav-link toolbar pointer-cursor"
               :title="$t('Start')"
@@ -25,7 +25,7 @@
           </li>
 
           <!-- 暂停任务 -->
-          <li class="nav-item" :class="{ disabled: !hasSelectedTasks }">
+          <li class="nav-item" :class="{ disabled: !isTaskListPage || !hasSelectedTasks }">
             <a
               class="nav-link toolbar pointer-cursor"
               :title="$t('Pause')"
@@ -36,7 +36,7 @@
           </li>
 
           <!-- 删除任务 -->
-          <li class="nav-item" :class="{ disabled: !hasSelectedTasks }">
+          <li class="nav-item" :class="{ disabled: !isTaskListPage || !hasSelectedTasks }">
             <a
               class="nav-link toolbar pointer-cursor"
               :title="$t('Delete')"
@@ -59,8 +59,8 @@
 
           <li class="nav-item divider"></li>
 
-          <!-- 全选 -->
-          <li class="nav-item">
+          <!-- 全选 (非任务列表页面不可操作) -->
+          <li class="nav-item" :class="{ disabled: !isTaskListPage || currentTabTasks.length === 0 }">
             <a
               class="nav-link toolbar pointer-cursor"
               :title="$t('Select All')"
@@ -70,22 +70,25 @@
             </a>
           </li>
 
-          <!-- 排序方式下拉菜单 -->
-          <li class="nav-item dropdown">
+          <!-- 排序方式下拉菜单 (非任务列表页面不可操作) -->
+          <li
+            ref="orderDropdownRef"
+            class="nav-item dropdown"
+            :class="{ disabled: !isTaskListPage }"
+          >
             <a
               class="nav-link toolbar pointer-cursor"
               :title="$t('Display Order')"
-              @click="isOrderDropdownOpen = !isOrderDropdownOpen"
+              @click="toggleOrderDropdown"
             >
               <i class="nav-icon fa fa-sort-amount-asc"></i>
               <i class="nav-icon fa fa-caret-down ml-1"></i>
             </a>
             <ul
-              class="dropdown-menu"
-              :class="{ show: isOrderDropdownOpen }"
+              v-if="isOrderDropdownOpen && isTaskListPage"
+              class="dropdown-menu show"
               role="menu"
               style="display: block;"
-              v-if="isOrderDropdownOpen"
               @click="isOrderDropdownOpen = false"
             >
               <li
@@ -161,15 +164,34 @@
  * ==============================================================================
  */
 
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { store, batchAction, clearAllStoppedTasks } from "../store";
+import { currentRoute } from "../router";
+
+/** 排序规则下拉菜单容器 DOM 引用 */
+const orderDropdownRef = ref(null);
 
 /** 排序规则下拉菜单展开状态 */
 const isOrderDropdownOpen = ref(false);
 
+/** 计算属性：当前是否处于任务列表相关页面 (downloading, waiting, stopped, all) */
+const isTaskListPage = computed(() => {
+  return currentRoute.value.name === "task-list";
+});
+
+/** 计算属性：当前激活分类下的任务集合 */
+const currentTabTasks = computed(() => {
+  if (!isTaskListPage.value) return [];
+  const filter = currentRoute.value.filter;
+  if (filter === "downloading") return store.tasks.active;
+  if (filter === "waiting") return store.tasks.waiting;
+  if (filter === "stopped") return store.tasks.stopped;
+  return [...store.tasks.active, ...store.tasks.waiting, ...store.tasks.stopped];
+});
+
 /** 计算属性：当前是否存在被用户勾选的任务 */
 const hasSelectedTasks = computed(() => {
-  return store.selectedGids.size > 0;
+  return isTaskListPage.value && store.selectedGids.size > 0;
 });
 
 /** 预定义排序选项列表 */
@@ -182,6 +204,53 @@ const sortOrders = [
   { key: "dspeed:desc", name: "By Download Speed", icon: "fa-arrow-circle-down" },
   { key: "uspeed:desc", name: "By Upload Speed", icon: "fa-arrow-circle-up" },
 ];
+
+/**
+ * 切换排序规则下拉菜单的展开与收起
+ */
+function toggleOrderDropdown() {
+  if (!isTaskListPage.value) return;
+  isOrderDropdownOpen.value = !isOrderDropdownOpen.value;
+}
+
+/**
+ * 监听全局点击事件：点击下拉菜单以外区域时自动收起下拉列表
+ * @param {MouseEvent} event
+ */
+function handleDocumentClick(event) {
+  if (!isOrderDropdownOpen.value) return;
+  if (orderDropdownRef.value && !orderDropdownRef.value.contains(event.target)) {
+    isOrderDropdownOpen.value = false;
+  }
+}
+
+/**
+ * 监听键盘 Escape 快捷键关闭下拉菜单
+ * @param {KeyboardEvent} event
+ */
+function handleKeyDown(event) {
+  if (event.key === "Escape" && isOrderDropdownOpen.value) {
+    isOrderDropdownOpen.value = false;
+  }
+}
+
+// 页面路由发生变更时，自动收起展开的下拉菜单
+watch(
+  () => currentRoute.value.path,
+  () => {
+    isOrderDropdownOpen.value = false;
+  }
+);
+
+onMounted(() => {
+  document.addEventListener("click", handleDocumentClick);
+  document.addEventListener("keydown", handleKeyDown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleDocumentClick);
+  document.removeEventListener("keydown", handleKeyDown);
+});
 
 /**
  * 触发针对已勾选任务的批量动作
@@ -201,19 +270,18 @@ function handleClearStopped() {
 }
 
 /**
- * 切换全选与取消全选
+ * 切换当前列表全选与取消全选
  */
 function handleSelectAll() {
-  const currentTasks = [
-    ...store.tasks.active,
-    ...store.tasks.waiting,
-    ...store.tasks.stopped,
-  ];
+  if (!isTaskListPage.value) return;
+  const tasks = currentTabTasks.value;
+  if (tasks.length === 0) return;
 
-  if (store.selectedGids.size === currentTasks.length && currentTasks.length > 0) {
-    store.selectedGids.clear();
+  const allSelected = tasks.every((t) => store.selectedGids.has(t.gid));
+  if (allSelected) {
+    tasks.forEach((t) => store.selectedGids.delete(t.gid));
   } else {
-    currentTasks.forEach((t) => store.selectedGids.add(t.gid));
+    tasks.forEach((t) => store.selectedGids.add(t.gid));
   }
 }
 </script>
