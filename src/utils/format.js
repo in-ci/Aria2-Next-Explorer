@@ -2,7 +2,7 @@
  * ==============================================================================
  * 高性能格式化工具集 (Format Utils)
  * ==============================================================================
- * 全面淘汰 Moment.js，基于现代 Chromium/Edge 原生原生能力实现，零内存泄漏与高帧率。
+ * 全面淘汰 Moment.js，基于现代 Chromium/Edge 原生能力实现，零内存泄漏与高帧率。
  * ==============================================================================
  */
 
@@ -12,31 +12,38 @@ import { t } from "../i18n";
  * 将字节数格式化为易读的容量单位 (B, KB, MB, GB, TB)
  * @param {number|string} bytes 字节数值
  * @param {number} decimals 保留小数位数
+ * @param {boolean} keepZero 是否在精确指定小数位时保留末尾 0
  * @returns {string} 格式化后的字符串
  */
-export function formatBytes(bytes, decimals = 2) {
+export function formatBytes(bytes, decimals = 2, keepZero = false) {
   const num = Number(bytes);
-  if (!num || isNaN(num) || num <= 0) return "0 B";
+  const dm = decimals < 0 ? 0 : decimals;
+  if (!num || isNaN(num) || num <= 0) {
+    return keepZero && dm > 0 ? (0).toFixed(dm) + " B" : "0 B";
+  }
 
   const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
   const sizes = ["B", "KB", "MB", "GB", "TB", "PB"];
   const i = Math.floor(Math.log(num) / Math.log(k));
 
-  if (i >= sizes.length) {
-    return (num / Math.pow(k, sizes.length - 1)).toFixed(dm) + " " + sizes[sizes.length - 1];
-  }
+  const targetSize = i >= sizes.length ? sizes[sizes.length - 1] : sizes[i];
+  const targetVal = i >= sizes.length ? num / Math.pow(k, sizes.length - 1) : num / Math.pow(k, i);
 
-  return parseFloat((num / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+  if (keepZero) {
+    return targetVal.toFixed(dm) + " " + targetSize;
+  }
+  return parseFloat(targetVal.toFixed(dm)) + " " + targetSize;
 }
 
 /**
  * 格式化传输速度
  * @param {number|string} speedBytesPerSec 每秒字节数
+ * @param {number} decimals 保留小数位数
+ * @param {boolean} keepZero 是否在精确指定小数位时保留末尾 0
  * @returns {string} 例如 "12.5 MB/s"
  */
-export function formatSpeed(speedBytesPerSec) {
-  return `${formatBytes(speedBytesPerSec)}/s`;
+export function formatSpeed(speedBytesPerSec, decimals = 2, keepZero = false) {
+  return `${formatBytes(speedBytesPerSec, decimals, keepZero)}/s`;
 }
 
 /**

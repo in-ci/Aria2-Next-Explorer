@@ -4,7 +4,7 @@
  * ==============================================================================
  * 职责：
  * 1. 负责 AriaNg 本地偏好设置在 localStorage 中的读取、迁移与安全保存。
- * 2. 负责主题模式（经典与深色）和动效开关的 DOM 类名响应与持久化同步。
+ * 2. 负责主题模式（经典与深色）、动效与紧凑模式的 DOM 类名响应与持久化同步。
  * ==============================================================================
  */
 
@@ -121,5 +121,22 @@ export function applyAnimationEffects(enabled, storeRef) {
     } else {
       root.classList.remove("reduced-motion");
     }
+  }
+}
+
+/**
+ * 设置紧凑模式并持久化至本地存储
+ * @param {boolean} enabled 是否开启紧凑模式
+ * @param {object} storeRef 全局 Store 引用
+ */
+export function setCompactMode(enabled, storeRef) {
+  const isCompact = Boolean(enabled);
+  if (storeRef) {
+    storeRef.compactMode = isCompact;
+    storeRef.options.compactMode = isCompact;
+    saveOptions(storeRef.options);
+  }
+  if (typeof document !== "undefined") {
+    document.documentElement.classList.toggle("compact-mode", isCompact);
   }
 }

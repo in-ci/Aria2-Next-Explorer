@@ -117,6 +117,7 @@
                 class="custom-control-input"
                 id="compact-mode"
                 v-model="store.compactMode"
+                @change="onCompactModeChange"
               />
               <label
                 class="custom-control-label form-check-label pointer-cursor"
@@ -165,7 +166,7 @@
  */
 
 import { ref, computed, watch } from "vue";
-import { store, batchAction, clearAllStoppedTasks } from "../store";
+import { store, batchAction, clearAllStoppedTasks, saveOptions } from "../store";
 import { currentRoute } from "../router";
 import { useEventListener } from "../composables/useEventListener";
 
@@ -174,6 +175,14 @@ const orderDropdownRef = ref(null);
 
 /** 排序规则下拉菜单展开状态 */
 const isOrderDropdownOpen = ref(false);
+
+/**
+ * 响应紧凑模式切换，同步配置并持久化至本地存储
+ */
+function onCompactModeChange() {
+  store.options.compactMode = Boolean(store.compactMode);
+  saveOptions(store.options);
+}
 
 /** 计算属性：当前是否处于任务列表相关页面 (downloading, waiting, stopped, all) */
 const isTaskListPage = computed(() => {
@@ -199,34 +208,38 @@ const hasSelectedTasks = computed(() => {
 const sortOrders = [
   { key: "default:asc", name: "Default", icon: "fa-list-ul" },
   { key: "name:asc", name: "By File Name", icon: "fa-sort-alpha-asc" },
-  { key: "size:asc", name: "By File Size", icon: "fa-briefcase" },
-  { key: "percent:desc", name: "By Progress", icon: "fa-hourglass-2" },
-  { key: "remain:asc", name: "By Remaining", icon: "fa-history" },
-  { key: "dspeed:desc", name: "By Download Speed", icon: "fa-arrow-circle-down" },
-  { key: "uspeed:desc", name: "By Upload Speed", icon: "fa-arrow-circle-up" },
+  { key: "size:asc", name: "By File Size", icon: "fa-sort-numeric-asc" },
+  { key: "percent:desc", name: "By Progress", icon: "fa-sort-amount-desc" },
+  { key: "remain:asc", name: "By Remaining Time", icon: "fa-sort-amount-asc" },
+  { key: "dspeed:desc", name: "By Download Speed", icon: "fa-sort-amount-desc" },
+  { key: "uspeed:desc", name: "By Upload Speed", icon: "fa-sort-amount-desc" },
 ];
 
 /**
- * 切换排序规则下拉菜单的展开与收起
+ * 切换排序下拉菜单的显隐状态
  */
 function toggleOrderDropdown() {
-  if (!isTaskListPage.value) return;
-  isOrderDropdownOpen.value = !isOrderDropdownOpen.value;
+  if (isTaskListPage.value) {
+    isOrderDropdownOpen.value = !isOrderDropdownOpen.value;
+  }
 }
 
 /**
- * 监听全局点击事件：点击下拉菜单以外区域时自动收起下拉列表
+ * 点击页面外部区域时，自动关闭下拉菜单
  * @param {MouseEvent} event
  */
 function handleDocumentClick(event) {
-  if (!isOrderDropdownOpen.value) return;
-  if (orderDropdownRef.value && !orderDropdownRef.value.contains(event.target)) {
+  if (
+    isOrderDropdownOpen.value &&
+    orderDropdownRef.value &&
+    !orderDropdownRef.value.contains(event.target)
+  ) {
     isOrderDropdownOpen.value = false;
   }
 }
 
 /**
- * 监听键盘 Escape 快捷键关闭下拉菜单
+ * 按下 Esc 键时快捷收起下拉菜单
  * @param {KeyboardEvent} event
  */
 function handleKeyDown(event) {
