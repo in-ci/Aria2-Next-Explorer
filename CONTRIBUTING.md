@@ -1,6 +1,6 @@
-# Contributing to Aria2 Explorer
+# Contributing to Aria2-Next Explorer
 
-Thank you for your interest in contributing to Aria2 Explorer! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Aria2-Next Explorer! This document provides guidelines and information for contributors.
 
 ## 📋 Table of Contents
 
@@ -283,4 +283,4 @@ By contributing, you agree that your contributions will be licensed under the BS
 
 ---
 
-Thank you for contributing to Aria2 Explorer! 🎉
+Thank you for contributing to Aria2-Next Explorer! 🎉

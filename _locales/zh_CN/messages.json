@@ -1,9 +1,9 @@
 {
    "appName": {
-      "message": "Aria2 Explorer"
+      "message": "Aria2-Next Explorer"
    },
    "description": {
-      "message": "让Aria2无缝接管下载，加速下载体验，内置Aria2前端，任务管理更方便。"
+      "message": "让 Aria2-Next 无缝接管下载，加速下载体验，支持 HTTP/HTTPS/SFTP/BT/Magnet/ED2K，内置 Web 前端，任务管理更方便。"
    },
    "contextmenuTitle": {
       "message": "导出到 "
@@ -15,7 +15,7 @@
       "message": "右键菜单"
    },
    "contextmenuDes": {
-      "message": "右键导出下载"
+      "message": "右键导出到 Aria2-Next"
    },
    "exportAllDes": {
       "message": "导出所有链接"
@@ -36,25 +36,25 @@
       "message": "下载拦截"
    },
    "downloadCaptureDes": {
-      "message": "自动拦截下载任务到Aria2，当文件大小"
+      "message": "自动拦截下载任务到 Aria2-Next，当文件大小"
    },
    "askBeforeDownloadDes": {
       "message": "自动下载前询问参数设置"
    },
    "allowExternalRequestDes": {
-      "message": "接受来自其他扩展的Aria2下载请求"
+      "message": "接受来自其他扩展的 Aria2-Next 下载请求"
    },
    "monitorAria2Str": {
-      "message": "监测Aria2状态"
+      "message": "监测 Aria2-Next 状态"
    },
    "monitorAria2Des": {
-      "message": "监测Aria2下载状态"
+      "message": "监测 Aria2-Next 下载状态"
    },
    "monitorAllDes": {
-      "message": "监测所有Aria2"
+      "message": "监测所有 Aria2-Next"
    },
    "monitorAllTip": {
-      "message": "当设置了多个Aria2时，监测所有Aria2状态，并聚合显示监测结果。"
+      "message": "当设置了多个下载引擎时，监测所有服务器状态，并聚合显示监测结果。"
    },
    "keepAwakeDes": {
       "message": "下载时保持系统唤醒"
@@ -69,7 +69,7 @@
       "message": "保持通知静音"
    },
    "captureMagnetDes": {
-      "message": "拦截磁力链接"
+      "message": "拦截磁力链接 (Magnet) 与电驴链接 (ED2K)"
    },
    "captureMagnetWarn": {
       "message": "系统级拦截，卸载前请确保关闭"
@@ -84,7 +84,7 @@
       "message": "网站过滤"
    },
    "selectDefaultRpcStr": {
-      "message": "默认Aria2"
+      "message": "默认 Aria2-Next"
    },
    "fileExtStr": {
       "message": "扩展名"
@@ -115,7 +115,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2 RPC name."
+            "example": "Aria2-Next"
          }
       }
    },
@@ -127,7 +127,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2 RPC name."
+            "example": "Aria2-Next"
          }
       }
    },
@@ -139,7 +139,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2"
+            "example": "Aria2-Next"
          }
       }
    },
@@ -148,7 +148,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2"
+            "example": "Aria2-Next"
          }
       }
    },
@@ -157,7 +157,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2"
+            "example": "Aria2-Next"
          }
       }
    },
@@ -166,7 +166,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2"
+            "example": "Aria2-Next"
          }
       }
    },
@@ -205,9 +205,6 @@
    },
    "openWebUIStr": {
       "message": "打开主界面"
-   },
-   "startAria2Str": {
-      "message": "启动Aria2"
    },
    "toggleCapture": {
       "message": "开关下载自动拦截"
@@ -277,9 +274,6 @@
    },
    "ManualDownloadCookiesTooltipDes": {
       "message": "在询问下载设置时，你需要决定是否删除相关网站的Cookies信息。"
-   },
-   "Aria2ManagerPromotionDes": {
-      "message": "好像没有安装Aria2 Manager，访问“Alex推荐”频道了解更多信息？"
    },
    "ResetSettingsDes": {
       "message": "确定重置扩展的配置为默认值？"
@@ -360,16 +354,16 @@
       "message": "开始使用！"
    },
    "tourStep1Title": {
-      "message": "连接 Aria2"
+      "message": "连接 Aria2-Next"
    },
    "tourStep1Body": {
-      "message": "填写 Aria2 的 RPC 地址，扩展通过它发送或导出拦截到的下载任务。"
+      "message": "填写 Aria2-Next 的 RPC 地址，扩展通过它发送或导出拦截到的下载任务。"
    },
    "tourStep2Title": {
       "message": "下载目录"
    },
    "tourStep2Body": {
-      "message": "设置拦截下载的默认保存位置。留空时，扩展将按顺序读取：<b>主界面：下载设置</b>（<code>dir</code>）→ <b>Aria2 配置文件</b>（<code>dir</code>）→ <b>Aria2 所在目录</b>。"
+      "message": "设置拦截下载的默认保存位置。留空时，扩展将按顺序读取：<b>主界面：下载设置</b>（<code>dir</code>）→ <b>Aria2-Next 配置文件</b>（<code>dir</code>）→ <b>Aria2-Next 所在目录</b>。"
    },
    "tourStep3Title": {
       "message": "智能下载路由"
@@ -388,41 +382,5 @@
    },
    "urlPatternPlaceholderDes": {
       "message": "URL Pattern，逗号分隔"
-   },
-   "helpTitle": {
-      "message": "帮助"
-   },
-   "shortcutsTitle": {
-      "message": "快捷键"
-   },
-   "closeDialog": {
-      "message": "关闭"
-   },
-   "shortcutGroupExtension": {
-      "message": "扩展"
-   },
-   "shortcutGroupPage": {
-      "message": "本页面"
-   },
-   "shortcutUploadConfig": {
-      "message": "上传配置到云端"
-   },
-   "shortcutDownloadConfig": {
-      "message": "从云端下载配置"
-   },
-   "moreWorks": {
-      "message": "更多作品"
-   },
-   "downCenterDesc": {
-      "message": "增强的下载记录与管理"
-   },
-   "goldIndexDesc": {
-      "message": "贵金属行情与实时金价监控"
-   },
-   "helpIntroDes": {
-      "message": "扩展包含两部分功能：下载拦截和任务管理。本页面负责下载拦截相关的配置。通过工具栏图标打开主界面，可以对任务管理界面和下载引擎进行相关配置。"
-   },
-   "shortcutNotSet": {
-      "message": "未设置"
    }
 }

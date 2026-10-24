@@ -1,9 +1,9 @@
 {
    "appName": {
-      "message": "Aria2 Explorer"
+      "message": "Aria2-Next Explorer"
    },
    "description": {
-      "message": "Speed up your downloads with Aria2, manage your download tasks easily."
+      "message": "Speed up your downloads with Aria2-Next. Supports HTTP/HTTPS/SFTP/BT/Magnet/ED2K with built-in Web UI."
    },
    "contextmenuTitle": {
       "message": "Export to "
@@ -15,7 +15,7 @@
       "message": "Context Menu"
    },
    "contextmenuDes": {
-      "message": "Export task from context menu"
+      "message": "Export download to Aria2-Next"
    },
    "exportAllDes": {
       "message": "Export all links"
@@ -36,25 +36,25 @@
       "message": "Download Capture"
    },
    "downloadCaptureDes": {
-      "message": "Enable auto capture when download file size"
+      "message": "Enable auto capture to Aria2-Next when file size"
    },
    "askBeforeDownloadDes": {
       "message": "Ask detail settings before auto download"
    },
    "allowExternalRequestDes": {
-      "message": "Receive Aria2 download request from other extension"
+      "message": "Receive Aria2-Next download request from other extensions"
    },
    "monitorAria2Str": {
-      "message": "Monitor Aria2 Status"
+      "message": "Monitor Aria2-Next Status"
    },
    "monitorAria2Des": {
-      "message": "Monitor Aria2 download status"
+      "message": "Monitor Aria2-Next download status"
    },
    "monitorAllDes": {
-      "message": "Monitor all Aria2 Servers"
+      "message": "Monitor all Aria2-Next Servers"
    },
    "monitorAllTip": {
-      "message": "When multiple Aria2 servers are set, monitor all the status of them and display the aggregate results."
+      "message": "When multiple download servers are configured, monitor all of them and display aggregate results."
    },
    "keepAwakeDes": {
       "message": "Keep system awake when downloading"
@@ -69,7 +69,7 @@
       "message": "Keep notifications silent"
    },
    "captureMagnetDes": {
-      "message": "Capture magnet link"
+      "message": "Capture Magnet and ED2K links"
    },
    "captureMagnetWarn": {
       "message": "OS level capture, please ensure disabling before uninstall."
@@ -84,7 +84,7 @@
       "message": "Website Filter"
    },
    "selectDefaultRpcStr": {
-      "message": "Default Aria2"
+      "message": "Default Aria2-Next"
    },
    "fileExtStr": {
       "message": "File Extension"
@@ -115,7 +115,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2 RPC name."
+            "example": "Aria2-Next"
          }
       }
    },
@@ -127,7 +127,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2 RPC name."
+            "example": "Aria2-Next"
          }
       }
    },
@@ -139,7 +139,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2"
+            "example": "Aria2-Next"
          }
       }
    },
@@ -148,7 +148,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2"
+            "example": "Aria2-Next"
          }
       }
    },
@@ -157,7 +157,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2"
+            "example": "Aria2-Next"
          }
       }
    },
@@ -166,7 +166,7 @@
       "placeholders": {
          "rpcName": {
             "content": "$1",
-            "example": "Aria2"
+            "example": "Aria2-Next"
          }
       }
    },
@@ -205,9 +205,6 @@
    },
    "openWebUIStr": {
       "message": "Open Web UI"
-   },
-   "startAria2Str": {
-      "message": "Start Aria2"
    },
    "toggleCapture": {
       "message": "Toggle download capture"
@@ -277,9 +274,6 @@
    },
    "ManualDownloadCookiesTooltipDes": {
       "message": "You should determine whether to delete the related website cookies when asking download settings."
-   },
-   "Aria2ManagerPromotionDes": {
-      "message": "It seems Aria2 Manager is not installed, access \"Alex Recommends\" channel for more information?"
    },
    "ResetSettingsDes": {
       "message": "Confirm to reset the extension configuration to default values?"
@@ -360,16 +354,16 @@
       "message": "Get Started!"
    },
    "tourStep1Title": {
-      "message": "Connect to Aria2"
+      "message": "Connect to Aria2-Next"
    },
    "tourStep1Body": {
-      "message": "Enter your Aria2 RPC address. The extension sends and exports intercepted download tasks through this connection."
+      "message": "Enter your Aria2-Next RPC address. The extension sends and exports intercepted download tasks through this connection."
    },
    "tourStep2Title": {
       "message": "Download Directory"
    },
    "tourStep2Body": {
-      "message": "Set where intercepted files are saved. If left empty, the extension resolves the path in order: <b>Web UI settings</b> (<code>dir</code>) → <b>Aria2 config</b> (<code>dir</code>) → <b>Aria2 executable folder</b>."
+      "message": "Set where intercepted files are saved. If left empty, the extension resolves the path in order: <b>Web UI settings</b> (<code>dir</code>) → <b>Aria2-Next config</b> (<code>dir</code>) → <b>Aria2-Next executable folder</b>."
    },
    "tourStep3Title": {
       "message": "Smart Download Routing"
@@ -388,41 +382,5 @@
    },
    "urlPatternPlaceholderDes": {
       "message": "URL pattern(s) separated by ,"
-   },
-   "helpTitle": {
-      "message": "Help"
-   },
-   "shortcutsTitle": {
-      "message": "Keyboard shortcuts"
-   },
-   "closeDialog": {
-      "message": "Close"
-   },
-   "shortcutGroupExtension": {
-      "message": "Extension"
-   },
-   "shortcutGroupPage": {
-      "message": "This page"
-   },
-   "shortcutUploadConfig": {
-      "message": "Upload config to cloud"
-   },
-   "shortcutDownloadConfig": {
-      "message": "Download config from cloud"
-   },
-   "moreWorks": {
-      "message": "More works"
-   },
-   "downCenterDesc": {
-      "message": "Enhanced downloads history & management"
-   },
-   "goldIndexDesc": {
-      "message": "Precious metals & gold price tracker"
-   },
-   "helpIntroDes": {
-      "message": "This extension consists of two parts: Download Interception and Task Management. This page handles settings related to download interception. Click the toolbar icon to open the main Web UI, where you can manage tasks and configure download engines."
-   },
-   "shortcutNotSet": {
-      "message": "Not set"
    }
 }
