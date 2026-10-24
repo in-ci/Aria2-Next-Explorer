@@ -378,7 +378,7 @@ async function runPackaging() {
         ? [
             "components", "views", "public", "store", "router", "i18n",
             "*.vue", "App.vue", "main.js", "index.html",
-            "plugins-156783225a.min.css", "bootstrap.min.css", "aria-ng-a896d84fcf.min.css",
+            "plugins-156783225a.min.css", "aria-ng-a896d84fcf.min.css",
             "fontawesome-webfont.*",
             ".git", ".DS_Store", "Thumbs.db"
           ]
