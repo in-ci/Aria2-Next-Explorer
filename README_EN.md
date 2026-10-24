@@ -7,7 +7,7 @@
 **A modern, powerful browser extension for seamless Aria2-Next integration**
 
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.0.0-gold.svg)](manifest.json)
+[![Version](https://img.shields.io/badge/version-3.0.9-gold.svg)](manifest.json)
 [![Aria2-Next](https://img.shields.io/badge/Engine-aria2--next-blue.svg)](https://github.com/AnInsomniacy/aria2-next)
 
 [简体中文](./README.md) | [English](#)
@@ -102,15 +102,15 @@ The repository includes a ready-to-use packaging script for **Microsoft Edge** (
    ```
 3. **Build Artifacts** (created inside `dist/`):
    - `dist/Aria2-Next-Explorer-Edge/`: Unpacked extension directory for immediate developer testing.
-   - `dist/Aria2-Next-Explorer-Edge-v3.0.0.zip`: Production-ready ZIP archive for store submission or distribution.
-   - `dist/Aria2-Next-Explorer-Edge-v3.0.0.crx`: Packed extension ready for drag-and-drop installation.
+   - `dist/Aria2-Next-Explorer-Edge-v3.0.9.zip`: Production-ready ZIP archive for store submission or distribution.
+   - `dist/Aria2-Next-Explorer-Edge-v3.0.9.crx`: Packed extension ready for drag-and-drop installation.
 
 ### 💡 How to Load in Microsoft Edge
 
 1. Open Edge and navigate to `edge://extensions/`.
 2. Toggle on **Developer mode** in the lower left navigation pane.
 3. Click **Load unpacked** at the top.
-4. Select `dist/Aria2-Next-Explorer-Edge` (or drag `Aria2-Next-Explorer-Edge-v3.0.0.crx` into the window).
+4. Select `dist/Aria2-Next-Explorer-Edge` (or drag `Aria2-Next-Explorer-Edge-v3.0.9.crx` into the window).
 5. Pin the extension to your toolbar and start downloading!
 
 ---

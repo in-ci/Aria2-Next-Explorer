@@ -4,6 +4,29 @@
 
 ---
 
+## [v3.0.9] - 2026-10-24
+
+### 🚀 深度性能优化与内存暴降 (Performance & Memory Overhaul)
+- **Store 全面解耦拆分**：将巨型 Store 单文件拆分为 `state`、`options`、`polling`、`actions` 4 个单一职责高内聚模块。
+- **视图组件按需懒加载 (Code-Splitting)**：首页仅同步加载核心 `TaskList`，次级视图使用 `defineAsyncComponent` 异步加载，首屏 JS 体积缩减 ~35%。
+- **CSS 深度树摇瘦身**：清理 264KB 未引用的历史遗留样式，FontAwesome 按需子集化至 17.7KB（瘦身 82%），CSSOM 渲染内存开销减少逾 25%。
+- **Vue 3 零拷贝与精准响应式**：
+  - `Object.freeze` 冻结 58KB i18n 多语言词典，阻断递归 Proxy 代理；
+  - `globalOptions` 与 `serverInfo` 改为 `shallowRef`，消除 100+ 项配置的深层代理；
+  - `v-memo` 优化任务列表渲染，跳过静态无变动任务的虚拟 DOM Diffing；
+  - 速度曲线图表数据队列采用零拷贝引用复用，杜绝每秒数组分配。
+- **扩展内存大幅优化**：扩展运行常驻内存从约 **70MB** 大幅降至 **35-45MB**。
+- **全局事件监听生命周期自动管理**：封装 `useEventListener` 组合式函数，统一管控组件的 DOM 与窗口事件，杜绝闭包与页面切换时的句柄残留。
+- **网络超时与内存泄漏治理**：Aria2Client 添加请求超时与 `AbortController` 保护，防止网络挂起与内存堆积。
+
+### 🎨 配置页面与选项重构 (Options Modernization)
+- **选项页移除帮助弹窗与快捷键绑定**：清除冗余的帮助对话框、快捷键 cheatsheet 与“更多作品”展示区。
+- **右上角新增 GitHub 仓库跳转**：替换原帮助按钮为精致的 GitHub 图标链接。
+- **页脚精简与美化**：移除版权行、致谢与打分链接，优化明暗主题切换与保存/重置按钮的对称居中布局。
+- **全面拥抱 Microsoft Edge Manifest V3 演进规范**：纯正 MV3 Service Worker 架构，无持久后台页面，支持按需唤醒与休眠。
+
+---
+
 ## [v3.0.0] - 2026-10-24
 
 ### 🌟 架构级技术换代 (AI-Driven Architecture Refactoring)
