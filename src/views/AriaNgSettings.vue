@@ -185,10 +185,10 @@
               <div class="setting-value col-sm-8">
                 <div class="form-group mb-0">
                   <select class="form-control" v-model="defaultTaskPage" @change="onDefaultTaskPageChange">
+                    <option value="all">{{ $t("All Tasks") }}</option>
                     <option value="downloading">{{ $t("Downloading") }}</option>
                     <option value="waiting">{{ $t("Waiting") }}</option>
                     <option value="stopped">{{ $t("Finished / Stopped") }}</option>
-                    <option value="all">{{ $t("All Tasks") }}</option>
                   </select>
                 </div>
               </div>
@@ -392,7 +392,7 @@ const pageTitle = ref(store.options.title || "${downspeed}, ${upspeed} - ${title
 /** 任务信息轮询刷新间隔 (毫秒) */
 const refreshInterval = ref(store.options.downloadTaskRefreshInterval || 1000);
 /** 默认进入的任务列表分类页面 */
-const defaultTaskPage = ref(store.options.defaultTaskPage || "downloading");
+const defaultTaskPage = ref(store.options.defaultTaskPage || "all");
 /** 创建新任务后的跳转动作 */
 const afterCreatingNewTask = ref(store.options.afterCreatingNewTask || "task-list");
 /** 重试任务后是否删除原任务 */
@@ -485,7 +485,7 @@ function resetAllSettings() {
       displayOrder: "default:asc",
       globalStatRefreshInterval: 1000,
       downloadTaskRefreshInterval: 1000,
-      defaultTaskPage: "downloading",
+      defaultTaskPage: "all",
       afterCreatingNewTask: "task-list",
       removeOldTaskAfterRetrying: true,
       confirmTaskRemoval: true,
@@ -503,7 +503,7 @@ function resetAllSettings() {
     animationEffects.value = true;
     pageTitle.value = "${downspeed}, ${upspeed} - ${title}";
     refreshInterval.value = 1000;
-    defaultTaskPage.value = "downloading";
+    defaultTaskPage.value = "all";
     afterCreatingNewTask.value = "task-list";
     removeOldTaskAfterRetrying.value = true;
     confirmTaskRemoval.value = true;

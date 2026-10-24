@@ -13,17 +13,23 @@ export const currentRoute = ref(parseHash(window.location.hash));
 
 /**
  * 获取用户配置的默认任务列表页面
- * @returns {string} 默认页面标识 (downloading, waiting, stopped, all)
+ * @returns {string} 默认页面标识 (all, downloading, waiting, stopped)
  */
 function getDefaultPage() {
   try {
     const saved = localStorage.getItem("AriaNg.Options");
     if (saved) {
       const parsed = JSON.parse(saved);
+      // 若尚未执行过默认页迁移且当前为旧版默认值 downloading，则优先返回 all
+      if (!localStorage.getItem("Aria2Next.MigratedDefaultPageToAll_v1")) {
+        if (!parsed.defaultTaskPage || parsed.defaultTaskPage === "downloading") {
+          return "all";
+        }
+      }
       if (parsed.defaultTaskPage) return parsed.defaultTaskPage;
     }
   } catch (e) {}
-  return "downloading";
+  return "all";
 }
 
 /**
@@ -33,8 +39,18 @@ function getDefaultPage() {
  */
 function parseHash(hashStr) {
   const defaultPage = getDefaultPage();
-  let hash = hashStr || `#!/${defaultPage}`;
-  if (hash === "#" || hash === "#!" || hash === "#!/") hash = `#!/${defaultPage}`;
+  const isEmptyHash = !hashStr || hashStr === "#" || hashStr === "#!" || hashStr === "#!/";
+  let hash = isEmptyHash ? `#!/${defaultPage}` : hashStr;
+
+  // 当进入页面未携带 hash 或 hash 为空时，通过 replaceState 同步更新浏览器地址栏为默认 hash（如 #!/all）
+  if (isEmptyHash && typeof window !== "undefined" && window.history) {
+    try {
+      window.history.replaceState(null, "", `#!/${defaultPage}`);
+    } catch (e) {
+      window.location.hash = `#!/${defaultPage}`;
+    }
+  }
+
   if (hash.startsWith("#!")) hash = hash.substring(2);
   else if (hash.startsWith("#")) hash = hash.substring(1);
 

@@ -756,7 +756,7 @@ async function submitTask(isPaused = false) {
     } else if (isPaused) {
       navigate("/waiting");
     } else {
-      navigate(`/${store.options.defaultTaskPage || "downloading"}`);
+      navigate(`/${store.options.defaultTaskPage || "all"}`);
     }
   } catch (err) {
     alert(`Failed to add task: ${err.message}`);
@@ -778,7 +778,7 @@ function downloadViaBrowser() {
         console.warn("Failed to download via browser:", err);
       });
     });
-    navigate(`/${store.options.defaultTaskPage || "downloading"}`);
+    navigate(`/${store.options.defaultTaskPage || "all"}`);
   }
 }
 

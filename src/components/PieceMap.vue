@@ -168,6 +168,12 @@ const blockSize = 13;
 const gap = 2;
 let resizeObserver = null;
 
+/** 实际网格排布尺寸与列数（供鼠标交互与高亮渲染严格保持一致） */
+const currentCols = ref(1);
+const currentRows = ref(1);
+const currentGridWidth = ref(0);
+const currentGridHeight = ref(0);
+
 /**
  * 重新计算 Canvas 视口并绘制所有分片网格
  */
@@ -176,24 +182,36 @@ function renderCanvas() {
   const container = wrapperRef.value || containerRef.value;
   if (!canvas || !container || props.pieceCount <= 0) return;
 
-  const width = container.clientWidth;
-  // 若当前容器尚未完全渲染（例如切换 Tab 瞬间处于 display:none，clientWidth 为 0），跳过本次绘制，等待 ResizeObserver 唤醒
-  if (width <= 0) return;
+  // 严格扣除容器内边距（padding），获取画布实际可用内容区域宽度，杜绝最后一个分块溢出被裁切
+  const computedStyle = window.getComputedStyle(container);
+  const padLeft = parseFloat(computedStyle.paddingLeft) || 0;
+  const padRight = parseFloat(computedStyle.paddingRight) || 0;
+  const availWidth = Math.max(0, Math.floor(container.clientWidth - padLeft - padRight));
 
-  const cols = Math.max(1, Math.floor((width + gap) / (blockSize + gap)));
+  // 若当前容器尚未完全渲染（例如切换 Tab 瞬间处于 display:none，clientWidth 为 0），跳过本次绘制，等待 ResizeObserver 唤醒
+  if (availWidth <= 0) return;
+
+  const cols = Math.max(1, Math.floor((availWidth + gap) / (blockSize + gap)));
   const rows = Math.ceil(props.pieceCount / cols);
-  const height = rows * (blockSize + gap) - gap;
+  const gridWidth = cols * (blockSize + gap) - gap;
+  const gridHeight = rows * (blockSize + gap) - gap;
+
+  // 记录实际网格排布尺寸供鼠标交互精准对齐使用
+  currentCols.value = cols;
+  currentRows.value = rows;
+  currentGridWidth.value = gridWidth;
+  currentGridHeight.value = gridHeight;
 
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = width * dpr;
-  canvas.height = height * dpr;
-  canvas.style.width = `${width}px`;
-  canvas.style.height = `${height}px`;
+  canvas.width = gridWidth * dpr;
+  canvas.height = gridHeight * dpr;
+  canvas.style.width = `${gridWidth}px`;
+  canvas.style.height = `${gridHeight}px`;
 
   const ctx = canvas.getContext("2d");
   ctx.save();
   ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, gridWidth, gridHeight);
 
   const isDark = document.documentElement.classList.contains("dark-theme");
   const uncompletedColor = isDark ? "#2a2d35" : "#e9ecef";
@@ -207,13 +225,17 @@ function renderCanvas() {
 
     ctx.fillStyle = isPieceCompleted(i) ? completedColor : uncompletedColor;
     ctx.fillRect(x, y, blockSize, blockSize);
+  }
 
-    // 悬停高亮提示边框
-    if (i === hoverIndex.value) {
-      ctx.strokeStyle = "#ffc107";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x - 0.5, y - 0.5, blockSize + 1, blockSize + 1);
-    }
+  // 置顶绘制鼠标悬停黄色高亮边框，避免被后续分块边缘绘制遮挡
+  if (hoverIndex.value >= 0 && hoverIndex.value < props.pieceCount) {
+    const hr = Math.floor(hoverIndex.value / cols);
+    const hc = hoverIndex.value % cols;
+    const hx = hc * (blockSize + gap);
+    const hy = hr * (blockSize + gap);
+    ctx.strokeStyle = "#ffc107";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(hx - 1, hy - 1, blockSize + 2, blockSize + 2);
   }
 
   ctx.restore();
@@ -224,15 +246,26 @@ function renderCanvas() {
  */
 function handleMouseMove(e) {
   const canvas = canvasRef.value;
-  if (!canvas || props.pieceCount <= 0) return;
+  if (!canvas || props.pieceCount <= 0 || currentCols.value <= 0) return;
 
   const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  const scaleX = rect.width > 0 ? currentGridWidth.value / rect.width : 1;
+  const scaleY = rect.height > 0 ? currentGridHeight.value / rect.height : 1;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
 
-  const cols = Math.max(1, Math.floor((rect.width + gap) / (blockSize + gap)));
+  const cols = currentCols.value;
   const c = Math.floor(x / (blockSize + gap));
   const r = Math.floor(y / (blockSize + gap));
+
+  // 边界保护：若鼠标在网格列数/行数之外，或在右侧尾部留白处，清除高亮
+  if (c < 0 || c >= cols || r < 0 || r >= currentRows.value) {
+    if (hoverIndex.value !== -1) {
+      hoverIndex.value = -1;
+      renderCanvas();
+    }
+    return;
+  }
 
   const idx = r * cols + c;
   if (idx >= 0 && idx < props.pieceCount) {
@@ -279,16 +312,19 @@ watch(
 onMounted(() => {
   nextTick(() => renderCanvas());
 
-  // 绑定 ResizeObserver 实时监听容器尺寸及 display 显隐状态切换
-  if (window.ResizeObserver && containerRef.value) {
-    resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.contentRect.width > 0) {
-          renderCanvas();
+  // 绑定 ResizeObserver 实时监听滚动包裹容器尺寸及 display 显隐状态切换
+  if (window.ResizeObserver) {
+    const observeTarget = wrapperRef.value || containerRef.value;
+    if (observeTarget) {
+      resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.contentRect.width > 0) {
+            renderCanvas();
+          }
         }
-      }
-    });
-    resizeObserver.observe(containerRef.value);
+      });
+      resizeObserver.observe(observeTarget);
+    }
   }
 
   window.addEventListener("resize", renderCanvas);

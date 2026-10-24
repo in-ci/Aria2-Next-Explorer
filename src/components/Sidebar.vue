@@ -44,8 +44,26 @@
     <!-- 侧边导航项 -->
     <section class="sidebar">
       <ul id="sidebar-menu" class="nav nav-sidebar flex-column nav-child-indent">
-        <!-- 任务分类 -->
+        <!-- 任务分类 (显示顺序遵循原作者规范：全部任务 -> 正在下载 -> 正在等待 -> 已完成/已停止) -->
         <li class="nav-header bg-gray-dark-blur">{{ $t("Download") }}</li>
+
+        <!-- 全部任务 -->
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            :class="{ active: currentRoute.path === '/all' }"
+            href="#!/all"
+            :title="$t('All Tasks')"
+          >
+            <i class="nav-icon fa fa-dot-circle-o"></i>
+            <p>
+              {{ $t("All Tasks") }}
+              <span v-if="store.globalStat.numTotal > 0" class="badge badge-primary nav-badge">
+                {{ store.globalStat.numTotal }}
+              </span>
+            </p>
+          </a>
+        </li>
 
         <!-- 下载中 -->
         <li class="nav-item">
@@ -58,7 +76,7 @@
             <i class="nav-icon fa fa-arrow-circle-o-down"></i>
             <p>
               {{ $t("Downloading") }}
-              <span v-if="store.globalStat.numActive > 0" class="badge badge-info right">
+              <span v-if="store.globalStat.numActive > 0" class="badge badge-info nav-badge">
                 {{ store.globalStat.numActive }}
               </span>
             </p>
@@ -76,7 +94,7 @@
             <i class="nav-icon fa fa-clock-o"></i>
             <p>
               {{ $t("Waiting") }}
-              <span v-if="store.globalStat.numWaiting > 0" class="badge badge-warning right">
+              <span v-if="store.globalStat.numWaiting > 0" class="badge badge-warning nav-badge">
                 {{ store.globalStat.numWaiting }}
               </span>
             </p>
@@ -94,26 +112,8 @@
             <i class="nav-icon fa fa-check-circle-o"></i>
             <p>
               {{ $t("Finished / Stopped") }}
-              <span v-if="store.globalStat.numStopped > 0" class="badge badge-secondary right">
+              <span v-if="store.globalStat.numStopped > 0" class="badge badge-secondary nav-badge">
                 {{ store.globalStat.numStopped }}
-              </span>
-            </p>
-          </a>
-        </li>
-
-        <!-- 全部任务 -->
-        <li class="nav-item">
-          <a
-            class="nav-link"
-            :class="{ active: currentRoute.path === '/all' }"
-            href="#!/all"
-            :title="$t('All Tasks')"
-          >
-            <i class="nav-icon fa fa-dot-circle-o"></i>
-            <p>
-              {{ $t("All Tasks") }}
-              <span v-if="store.globalStat.numTotal > 0" class="badge badge-primary right">
-                {{ store.globalStat.numTotal }}
               </span>
             </p>
           </a>
@@ -267,7 +267,7 @@
             <p>
               {{ $t("Downloader Information") }}
               <span
-                class="badge status-badge right"
+                class="badge status-badge nav-badge"
                 :class="{
                   'badge-success': store.rpcStatus === 'Connected',
                   'badge-primary': store.rpcStatus === 'Connecting',
@@ -303,3 +303,29 @@ const isRpcDropdownOpen = ref(false);
 /** Aria2 下载设置二级折叠菜单开闭状态 */
 const isAria2MenuOpen = ref(false);
 </script>
+
+<style scoped>
+/* 确保每个导航链接具备独立的定位上下文 */
+:deep(.nav-sidebar .nav-link),
+.nav-sidebar .nav-link {
+  position: relative !important;
+}
+
+/* 侧边栏任务计数与状态徽章：垂直精准居中对齐，杜绝错位偏下 */
+:deep(.nav-sidebar .nav-link .nav-badge),
+:deep(.nav-sidebar .nav-link > p > .nav-badge),
+.nav-sidebar .nav-link .nav-badge,
+.nav-sidebar .nav-link > p > .nav-badge {
+  position: absolute !important;
+  right: 1rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  padding: 0.28em 0.55em !important;
+  font-size: 75% !important;
+  margin: 0 !important;
+}
+</style>

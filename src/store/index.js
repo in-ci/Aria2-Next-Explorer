@@ -65,7 +65,7 @@ function loadSavedOptions() {
     displayOrder: "default:asc",
     globalStatRefreshInterval: 1000,
     downloadTaskRefreshInterval: 1000,
-    defaultTaskPage: "downloading",
+    defaultTaskPage: "all",
     afterCreatingNewTask: "task-list",
     removeOldTaskAfterRetrying: true,
     confirmTaskRemoval: true,
@@ -84,6 +84,19 @@ function loadSavedOptions() {
   try {
     const parsed = JSON.parse(raw);
     const merged = { ...defaultOpts, ...parsed };
+
+    // 一次性平滑升级：将历史默认值 downloading 自动迁移为 all（如用户后续自行在设置修改则保持用户选择）
+    const MIGRATION_KEY = "Aria2Next.MigratedDefaultPageToAll_v1";
+    if (!localStorage.getItem(MIGRATION_KEY)) {
+      try {
+        localStorage.setItem(MIGRATION_KEY, "true");
+      } catch (e) {}
+      if (merged.defaultTaskPage === "downloading") {
+        merged.defaultTaskPage = "all";
+        saveOptions(merged);
+      }
+    }
+
     // 强制主题仅支持 default (经典) 与 dark (深色)
     if (merged.theme !== "dark" && merged.theme !== "default") {
       merged.theme = "default";
@@ -220,6 +233,9 @@ export const rpcList = computed(() => {
   return list;
 });
 
+/** 任务生命周期时间与队列顺序元数据追踪缓存 (按 GID 索引) */
+const taskMetaMap = new Map();
+
 /**
  * 处理单项任务的数据加工与属性提炼
  * 使用 markRaw 阻断 Vue3 对海量静态任务对象的深度响应式 Proxy 包装，降低 90% 堆内存占用
@@ -267,6 +283,14 @@ function processTaskItem(raw) {
     selectedFileCount = raw.files.filter((f) => f.selected === "true").length;
   }
 
+  const meta = taskMetaMap.get(raw.gid) || {
+    startTime: 0,
+    completedTime: 0,
+    activeOrder: 999999,
+    waitingOrder: 999999,
+    stoppedOrder: 999999,
+  };
+
   return markRaw({
     gid: raw.gid,
     status: raw.status,
@@ -284,6 +308,11 @@ function processTaskItem(raw) {
     dir: raw.dir || "",
     errorCode: raw.errorCode || "",
     errorDescription: getErrorDescription(raw.errorCode),
+    startTime: meta.startTime,
+    completedTime: meta.completedTime,
+    activeOrder: meta.activeOrder !== undefined ? meta.activeOrder : 999999,
+    waitingOrder: meta.waitingOrder !== undefined ? meta.waitingOrder : 999999,
+    stoppedOrder: meta.stoppedOrder !== undefined ? meta.stoppedOrder : 999999,
   });
 }
 
@@ -365,27 +394,82 @@ export async function refreshData(force = false) {
       ]);
 
       if (active !== null) {
+        active.forEach((raw, idx) => {
+          let meta = taskMetaMap.get(raw.gid);
+          if (!meta) {
+            meta = {
+              startTime: Date.now() - (active.length - idx) * 1000,
+              completedTime: 0,
+              activeOrder: idx,
+              waitingOrder: 999999,
+              stoppedOrder: 999999,
+            };
+            taskMetaMap.set(raw.gid, meta);
+          } else {
+            meta.activeOrder = idx;
+          }
+        });
         store.tasks.active = active.map(processTaskItem);
       }
       if (waiting !== null) {
+        waiting.forEach((raw, idx) => {
+          let meta = taskMetaMap.get(raw.gid);
+          if (!meta) {
+            meta = {
+              startTime: 0,
+              completedTime: 0,
+              activeOrder: 999999,
+              waitingOrder: idx,
+              stoppedOrder: 999999,
+            };
+            taskMetaMap.set(raw.gid, meta);
+          } else {
+            meta.waitingOrder = idx;
+          }
+        });
         store.tasks.waiting = waiting.map(processTaskItem);
       }
       if (stopped !== null) {
         lastNumStopped = numStopped;
+        stopped.forEach((raw, idx) => {
+          let meta = taskMetaMap.get(raw.gid);
+          if (!meta) {
+            meta = {
+              startTime: 0,
+              completedTime: Date.now() - idx * 1000,
+              activeOrder: 999999,
+              waitingOrder: 999999,
+              stoppedOrder: idx,
+            };
+            taskMetaMap.set(raw.gid, meta);
+          } else {
+            if (!meta.completedTime) {
+              meta.completedTime = Date.now();
+            }
+            meta.stoppedOrder = idx;
+          }
+        });
         store.tasks.stopped = stopped.map(processTaskItem);
       }
 
-      // 及时清理在服务端已被删除或清理的任务 GID，防止 selectedGids 集合发生内存泄漏
+      // 及时清理在服务端已被删除或清理的任务 GID，防止 selectedGids 及 taskMetaMap 发生内存泄漏
+      const validGids = new Set([
+        ...store.tasks.active.map((t) => t.gid),
+        ...store.tasks.waiting.map((t) => t.gid),
+        ...store.tasks.stopped.map((t) => t.gid),
+      ]);
+
       if (store.selectedGids.size > 0) {
-        const validGids = new Set([
-          ...store.tasks.active.map((t) => t.gid),
-          ...store.tasks.waiting.map((t) => t.gid),
-          ...store.tasks.stopped.map((t) => t.gid),
-        ]);
         for (const gid of store.selectedGids) {
           if (!validGids.has(gid)) {
             store.selectedGids.delete(gid);
           }
+        }
+      }
+
+      for (const [gid] of taskMetaMap) {
+        if (!validGids.has(gid)) {
+          taskMetaMap.delete(gid);
         }
       }
     }

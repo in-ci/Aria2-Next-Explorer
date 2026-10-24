@@ -23,6 +23,7 @@ export const DefaultAriaNgOptions = {
   webSocketReconnectInterval: 5000,
   globalStatRefreshInterval: 1000,
   downloadTaskRefreshInterval: 1000,
+  defaultTaskPage: "all",
   keyboardShortcuts: false,
   swipeGesture: true,
   dragAndDropTasks: true,

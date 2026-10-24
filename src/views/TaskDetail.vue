@@ -44,8 +44,8 @@
               <div class="setting-key col-sm-4 font-weight-bold">{{ $t("Task Status") }}</div>
               <div class="setting-value col-sm-8">
                 <span class="badge" :class="statusBadgeClass">{{ formatTaskStatus(task.status) }}</span>
-                <span v-if="task.errorCode && task.errorCode !== '0'" class="text-danger ml-2">
-                  ({{ task.errorCode }}: {{ $t(task.errorDescription) }})
+                <span v-if="task.status === 'error' && task.errorCode && task.errorCode !== '0'" class="text-danger ml-2">
+                  ({{ task.errorCode }}: {{ $t(task.errorDescription) || $t("unknown") }})
                 </span>
               </div>
             </div>
@@ -277,6 +277,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { store } from "../store";
 import { navigate } from "../router";
 import { t } from "../i18n";
+import { getErrorDescription } from "../api/aria2-errors";
 import PieceMap from "../components/PieceMap.vue";
 import { formatBytes, formatSpeed, formatDuration, formatPercent } from "../utils/format";
 
@@ -399,7 +400,7 @@ const task = computed(() => {
     remainTime,
     dir: raw?.dir || storeTask?.dir || "",
     errorCode: raw?.errorCode || storeTask?.errorCode || "",
-    errorDescription: storeTask?.errorDescription || "",
+    errorDescription: storeTask?.errorDescription || (raw?.errorCode ? getErrorDescription(raw.errorCode) : ""),
     numPieces: raw?.numPieces || storeTask?.numPieces || 0,
     bitfield: raw?.bitfield || "",
     pieceLength: raw?.pieceLength || 0,
@@ -574,7 +575,7 @@ function goBack() {
   if (window.history.length > 1) {
     window.history.back();
   } else {
-    navigate("/downloading");
+    navigate(`/${store.options.defaultTaskPage || "all"}`);
   }
 }
 
