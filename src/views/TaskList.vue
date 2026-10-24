@@ -4,18 +4,21 @@
       <!-- 表头标题栏（包含排序字段切换按钮） -->
       <div class="task-table-title">
         <div class="row align-items-center">
-          <!-- 文件名与大小排序 -->
+          <!-- 文件名与大小排序（拆开为独立列：大小独占一列，参考原作者布局） -->
           <div class="task-col-name col-lg-8 col-sm-7 col-12">
-            <div class="title-group d-flex align-items-center">
-              <a class="pointer-cursor mr-2" @click="toggleSort('name')">
-                <span>{{ $t("File Name") }}</span>
-                <i :class="getSortIcon('name')"></i>
-              </a>
-              <span class="separator text-muted mr-2">/</span>
-              <a class="pointer-cursor" @click="toggleSort('size')">
-                <span>{{ $t("File Size") }}</span>
-                <i :class="getSortIcon('size')"></i>
-              </a>
+            <div class="row align-items-center">
+              <div class="col-sm-9 col-8">
+                <a class="pointer-cursor" @click="toggleSort('name')">
+                  <span>{{ $t("File Name") }}</span>
+                  <i :class="getSortIcon('name')"></i>
+                </a>
+              </div>
+              <div class="col-sm-3 col-4 text-center">
+                <a class="pointer-cursor" @click="toggleSort('size')">
+                  <span>{{ $t("File Size") }}</span>
+                  <i :class="getSortIcon('size')"></i>
+                </a>
+              </div>
             </div>
           </div>
 
@@ -59,64 +62,71 @@
           }"
           @click="toggleTaskSelect(task.gid, $event)"
         >
-          <!-- 任务名与控制动作 -->
-          <div class="task-col-name col-lg-8 col-sm-7 col-12">
-            <div class="checkbox checkbox-primary mr-2" @click.stop>
-              <input
-                :id="'task_' + task.gid"
-                type="checkbox"
-                :checked="isTaskSelected(task.gid)"
-                @change="toggleTaskSelect(task.gid)"
-              />
-              <label :for="'task_' + task.gid">
-                <span
-                  class="task-name auto-ellipsis font-weight-bold"
-                  :title="task.taskName"
-                >
-                  {{ task.taskName }}
-                </span>
-              </label>
+          <!-- 任务名与大小列（与表头 col-sm-9 / col-sm-3 完美对齐） -->
+          <div class="task-col-name col-lg-8 col-sm-7 col-12 position-relative">
+            <div class="row align-items-center w-100 m-0">
+              <!-- 文件名列 -->
+              <div class="col-sm-9 col-8 p-0 d-flex align-items-center overflow-hidden">
+                <div class="checkbox checkbox-primary mr-2 mb-0" @click.stop>
+                  <input
+                    :id="'task_' + task.gid"
+                    type="checkbox"
+                    :checked="isTaskSelected(task.gid)"
+                    @change="toggleTaskSelect(task.gid)"
+                  />
+                  <label :for="'task_' + task.gid">
+                    <span
+                      class="task-name auto-ellipsis font-weight-bold"
+                      :title="task.taskName"
+                    >
+                      {{ task.taskName }}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 大小列（独占一列，与表头对齐） -->
+              <div class="col-sm-3 col-4 p-0 text-center">
+                <div class="task-files d-inline-flex align-items-center justify-content-center">
+                  <span class="task-size text-muted mr-1 font-monospace">{{ formatBytes(task.totalLength) }}</span>
+                  <a
+                    v-if="task.files && task.files.length > 1"
+                    class="file-count badge badge-secondary"
+                    :href="`#!/task/detail/${task.gid}?tab=filelist`"
+                    :title="$t('Click to view task detail')"
+                    @click.stop
+                  >
+                    {{ task.files.length }} {{ $t("Files") }}
+                  </a>
+                </div>
+              </div>
             </div>
 
-            <!-- 文件大小与文件数 -->
-            <div class="task-files">
-              <span class="task-size text-muted mr-2">{{ formatBytes(task.totalLength) }}</span>
+            <!-- 悬停快捷控制按钮 -->
+            <div class="task-hover-actions" @click.stop>
               <a
-                v-if="task.files && task.files.length > 1"
-                class="file-count badge badge-secondary mr-2"
-                :href="`#!/task/detail/${task.gid}?tab=filelist`"
-                :title="$t('Click to view task detail')"
-                @click.stop
-              >
-                {{ task.files.length }} {{ $t("Files") }}
-              </a>
-
-              <!-- 悬停快捷控制按钮 -->
-              <span class="task-hover-actions ml-2" @click.stop>
-                <a
-                  v-if="task.status === 'active' || task.status === 'waiting'"
-                  class="task-action-btn fa fa-pause text-warning mr-2 pointer-cursor"
-                  :title="$t('Pause')"
-                  @click="singleAction('pause', task.gid)"
-                ></a>
-                <a
-                  v-if="task.status === 'paused'"
-                  class="task-action-btn fa fa-play text-success mr-2 pointer-cursor"
-                  :title="$t('Start')"
-                  @click="singleAction('start', task.gid)"
-                ></a>
-                <a
-                  v-if="task.status === 'complete' || task.status === 'error' || task.status === 'removed'"
-                  class="task-action-btn fa fa-refresh text-primary mr-2 pointer-cursor"
-                  :title="$t('Retry')"
-                  @click="retryTask(task)"
-                ></a>
-                <a
-                  class="task-action-btn fa fa-trash-o text-danger pointer-cursor"
-                  :title="$t('Delete')"
-                  @click="singleAction('remove', task.gid)"
-                ></a>
-              </span>
+                v-if="task.status === 'active' || task.status === 'waiting'"
+                class="task-action-btn fa fa-pause text-warning pointer-cursor"
+                :title="$t('Pause')"
+                @click="singleAction('pause', task.gid)"
+              ></a>
+              <a
+                v-if="task.status === 'paused'"
+                class="task-action-btn fa fa-play text-success pointer-cursor"
+                :title="$t('Start')"
+                @click="singleAction('start', task.gid)"
+              ></a>
+              <a
+                v-if="task.status === 'complete' || task.status === 'error' || task.status === 'removed'"
+                class="task-action-btn fa fa-refresh text-primary pointer-cursor"
+                :title="$t('Retry')"
+                @click="retryTask(task)"
+              ></a>
+              <a
+                class="task-action-btn fa fa-trash-o text-danger pointer-cursor"
+                :title="$t('Delete')"
+                @click="singleAction('remove', task.gid)"
+              ></a>
             </div>
           </div>
 
