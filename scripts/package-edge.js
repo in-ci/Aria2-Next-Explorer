@@ -354,7 +354,6 @@ async function runPackaging() {
   // 4. 定义需要打包的文件与目录清单
   const includeEntries = [
     "manifest.json",
-    "acknowledgment.txt",
     "_locales",
     "src",
   ];

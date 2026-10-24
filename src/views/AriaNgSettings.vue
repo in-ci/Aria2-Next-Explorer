@@ -370,10 +370,11 @@
  * ==============================================================================
  */
 
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed } from "vue";
 import { store, rpcList, currentRpc, applyTheme, applyAnimationEffects, switchRpcServer } from "../store";
 import { setLanguage, currentLang, t } from "../i18n";
 import { formatPageTitle } from "../utils/title";
+import { useEventListener } from "../composables/useEventListener";
 
 /** 当前选项卡 ('global' 或 'rpc_0', 'rpc_1' 等) */
 const currentTab = ref("global");
@@ -598,13 +599,7 @@ function closeHelpPopover() {
   isHelpPopoverOpen.value = false;
 }
 
-onMounted(() => {
-  window.addEventListener("click", closeHelpPopover);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("click", closeHelpPopover);
-});
+useEventListener(window, "click", closeHelpPopover);
 </script>
 
 <style scoped>

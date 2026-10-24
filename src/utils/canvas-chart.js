@@ -44,11 +44,11 @@ export class SpeedCanvasChart {
   }
 
   /**
-   * 全量替换速度历史队列并重绘
+   * 全量替换速度历史队列并重绘 (零拷贝：直接复用数组引用，杜绝每秒创建新数组的 GC 垃圾)
    * @param {Array<{down: number, up: number, time: number}>} historyData
    */
   setHistory(historyData) {
-    this.history = Array.isArray(historyData) ? [...historyData] : [];
+    this.history = Array.isArray(historyData) ? historyData : [];
     this.render();
   }
 

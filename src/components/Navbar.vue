@@ -164,9 +164,10 @@
  * ==============================================================================
  */
 
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { ref, computed, watch } from "vue";
 import { store, batchAction, clearAllStoppedTasks } from "../store";
 import { currentRoute } from "../router";
+import { useEventListener } from "../composables/useEventListener";
 
 /** 排序规则下拉菜单容器 DOM 引用 */
 const orderDropdownRef = ref(null);
@@ -186,7 +187,7 @@ const currentTabTasks = computed(() => {
   if (filter === "downloading") return store.tasks.active;
   if (filter === "waiting") return store.tasks.waiting;
   if (filter === "stopped") return store.tasks.stopped;
-  return [...store.tasks.active, ...store.tasks.waiting, ...store.tasks.stopped];
+  return store.tasks.active.concat(store.tasks.waiting, store.tasks.stopped);
 });
 
 /** 计算属性：当前是否存在被用户勾选的任务 */
@@ -242,15 +243,9 @@ watch(
   }
 );
 
-onMounted(() => {
-  document.addEventListener("click", handleDocumentClick);
-  document.addEventListener("keydown", handleKeyDown);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", handleDocumentClick);
-  document.removeEventListener("keydown", handleKeyDown);
-});
+// 全局事件统一托管并自动清理
+useEventListener(document, "click", handleDocumentClick);
+useEventListener(document, "keydown", handleKeyDown);
 
 /**
  * 触发针对已勾选任务的批量动作

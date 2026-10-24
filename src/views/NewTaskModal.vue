@@ -267,12 +267,13 @@
  * ==============================================================================
  */
 
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { store, refreshData, fetchGlobalOptions } from "../store";
 import { navigate } from "../router";
 import { formatBytes } from "../utils/format";
 import SettingRow from "../components/SettingRow.vue";
 import { getAllSettingsOptions } from "../api/settings";
+import { useEventListener } from "../composables/useEventListener";
 
 const props = defineProps({
   /** 外部路由传递的查询参数字典对象 */
@@ -800,15 +801,12 @@ function fileToBase64(file) {
   });
 }
 
+useEventListener(window, "click", closeAllDropdowns);
+
 onMounted(() => {
   if (store.rpcStatus === "Connected") {
     loadGlobalOptions();
   }
-  window.addEventListener("click", closeAllDropdowns);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("click", closeAllDropdowns);
 });
 
 // 监听 RPC 连接状态：当连接建立或网络重连成功时，立即同步获取服务端的真实全局配置

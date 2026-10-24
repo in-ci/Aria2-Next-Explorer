@@ -148,7 +148,8 @@ export class Aria2Client {
   }
 
   _rejectAllPending(reason) {
-    this.pendingRequests.forEach(({ reject }) => {
+    this.pendingRequests.forEach(({ reject, timeout }) => {
+      if (timeout) clearTimeout(timeout);
       reject(new Error(reason));
     });
     this.pendingRequests.clear();
@@ -211,19 +212,24 @@ export class Aria2Client {
             clearTimeout(timeout);
             reject(err);
           },
+          timeout,
         });
 
         this.socket.send(JSON.stringify(payload));
       });
     }
 
-    // 2. HTTP POST 降级通道
+    // 2. HTTP POST 降级通道 (使用 AbortController 严格控制超时，杜绝挂起泄漏)
+    const controller = new AbortController();
+    const fetchTimeout = setTimeout(() => controller.abort(), 10000);
     try {
       const response = await fetch(this.httpUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+      clearTimeout(fetchTimeout);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -241,6 +247,7 @@ export class Aria2Client {
 
       return data.result;
     } catch (err) {
+      clearTimeout(fetchTimeout);
       if (this.connected) {
         this.connected = false;
         this._emit("statusChange", "Disconnected");

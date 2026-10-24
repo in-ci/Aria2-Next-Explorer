@@ -330,11 +330,10 @@ function formatTaskStatus(status) {
  * 计算属性：整合局部 full RPC 查询与 Store 基础信息
  */
 const task = computed(() => {
-  const storeTask = [
-    ...store.tasks.active,
-    ...store.tasks.waiting,
-    ...store.tasks.stopped,
-  ].find((t) => t.gid === props.gid);
+  const storeTask =
+    store.tasks.active.find((t) => t.gid === props.gid) ||
+    store.tasks.waiting.find((t) => t.gid === props.gid) ||
+    store.tasks.stopped.find((t) => t.gid === props.gid);
 
   const raw = rawDetail.value;
   if (!raw && !storeTask) return null;

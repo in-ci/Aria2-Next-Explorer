@@ -55,6 +55,18 @@
         <div
           v-for="task in visibleTasks"
           :key="task.gid"
+          v-memo="[
+            task.gid,
+            task.status,
+            task.downloadSpeed,
+            task.uploadSpeed,
+            task.completedLength,
+            task.totalLength,
+            task.completePercent,
+            task.remainTime,
+            isTaskSelected(task.gid),
+            store.compactMode,
+          ]"
           class="row pointer-cursor task-item-animate align-items-center"
           :class="{
             selected: isTaskSelected(task.gid),
@@ -224,8 +236,9 @@
  * 2. 结合 scroll 监听实现触底平滑自动加载。
  * 3. 排序与搜索计算均基于轻量原生数组，极大减少垃圾回收压力。
  */
-import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { store, batchAction, refreshData } from "../store";
+import { useEventListener } from "../composables/useEventListener";
 import { formatBytes, formatSpeed, formatDuration, formatPercent } from "../utils/format";
 
 const props = defineProps({
@@ -243,19 +256,22 @@ const rawTasks = computed(() => {
   if (props.filterType === "downloading") return store.tasks.active;
   if (props.filterType === "waiting") return store.tasks.waiting;
   if (props.filterType === "stopped") return store.tasks.stopped;
-  return [...store.tasks.active, ...store.tasks.waiting, ...store.tasks.stopped];
+  return store.tasks.active.concat(store.tasks.waiting, store.tasks.stopped);
 });
 
 /**
  * 计算属性：结合搜索关键词与用户自定义排序规则，计算出完整的排序列
  */
 const displayedTasks = computed(() => {
-  let list = [...rawTasks.value];
+  let list;
 
-  // 1. 实时搜索过滤
-  if (store.searchQuery.trim()) {
-    const q = store.searchQuery.trim().toLowerCase();
-    list = list.filter((t) => (t.taskName || "").toLowerCase().includes(q));
+  // 1. 实时搜索过滤（无搜索词时使用轻量 slice 避免二次创建数组）
+  const query = store.searchQuery.trim();
+  if (query) {
+    const q = query.toLowerCase();
+    list = rawTasks.value.filter((t) => (t.taskName || "").toLowerCase().includes(q));
+  } else {
+    list = rawTasks.value.slice();
   }
 
   // 2. 自定义或默认排序
@@ -361,19 +377,8 @@ watch([() => props.filterType, () => store.searchQuery], () => {
   renderLimit.value = 60;
 });
 
-onMounted(() => {
-  const scrollContainer = document.getElementById("content-body");
-  if (scrollContainer) {
-    scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
-  }
-});
-
-onUnmounted(() => {
-  const scrollContainer = document.getElementById("content-body");
-  if (scrollContainer) {
-    scrollContainer.removeEventListener("scroll", handleScroll);
-  }
-});
+// 监听滚动容器触底事件，动态扩充 DOM 渲染项
+useEventListener("#content-body", "scroll", handleScroll, { passive: true });
 
 /**
  * 检查指定 GID 的任务是否已被用户选中

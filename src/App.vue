@@ -32,19 +32,21 @@
  * App.vue - 根布局组件
  * 处理视口高度自适应计算、紧凑模式切换与页面滚动流控制
  */
-import { ref, computed, onMounted, onUnmounted, watchEffect } from "vue";
-import { store, initStore } from "./store";
+import { ref, computed, defineAsyncComponent, onMounted, onUnmounted, watchEffect } from "vue";
+import { store, initStore, stopStore } from "./store";
 import { currentRoute } from "./router";
+import { useEventListener } from "./composables/useEventListener";
 import Navbar from "./components/Navbar.vue";
 import Sidebar from "./components/Sidebar.vue";
 import FooterBar from "./components/FooterBar.vue";
 
+// 关键优化：首屏保留核心 TaskList 同步加载保证秒开，次级视图按需异步懒加载 (Code-Splitting)
 import TaskList from "./views/TaskList.vue";
-import TaskDetail from "./views/TaskDetail.vue";
-import NewTaskModal from "./views/NewTaskModal.vue";
-import Status from "./views/Status.vue";
-import Aria2Settings from "./views/Aria2Settings.vue";
-import AriaNgSettings from "./views/AriaNgSettings.vue";
+const TaskDetail = defineAsyncComponent(() => import("./views/TaskDetail.vue"));
+const NewTaskModal = defineAsyncComponent(() => import("./views/NewTaskModal.vue"));
+const Status = defineAsyncComponent(() => import("./views/Status.vue"));
+const Aria2Settings = defineAsyncComponent(() => import("./views/Aria2Settings.vue"));
+const AriaNgSettings = defineAsyncComponent(() => import("./views/AriaNgSettings.vue"));
 
 const isSidebarCollapsed = ref(false);
 const contentBodyRef = ref(null);
@@ -92,9 +94,10 @@ function updateContentHeight() {
   }
 }
 
+useEventListener(window, "resize", updateContentHeight);
+
 onMounted(() => {
   updateContentHeight();
-  window.addEventListener("resize", updateContentHeight);
 
   // 挂载后移除 hold-transition，恢复 AdminLTE 平滑的 CSS 动效
   setTimeout(() => {
@@ -113,7 +116,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener("resize", updateContentHeight);
+  stopStore();
 });
 </script>
 
