@@ -178,12 +178,12 @@
             <li class="nav-item">
               <a
                 class="nav-link"
-                :class="{ active: currentRoute.path === '/settings/aria2/sftp' }"
-                href="#!/settings/aria2/sftp"
-                :title="$t('SFTP Settings')"
+                :class="{ active: currentRoute.path === '/settings/aria2/file' }"
+                href="#!/settings/aria2/file"
+                :title="$t('File Settings')"
               >
-                <i class="nav-icon fa fa-key"></i>
-                <p>{{ $t("SFTP Settings") }}</p>
+                <i class="nav-icon fa fa-file-text-o"></i>
+                <p>{{ $t("File Settings") }}</p>
               </a>
             </li>
             <li class="nav-item">

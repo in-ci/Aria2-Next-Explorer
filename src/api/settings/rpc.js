@@ -1,8 +1,8 @@
 /**
  * ==============================================================================
- * 下载选项模块: RPC 服务设置 (RPC Settings)
+ * 下载选项模块: RPC 服务端设置 (RPC Settings)
  * ==============================================================================
- * 说明: 如需在该分类下新增或修改选项，可直接在此处编辑/增加配置对象。
+ * 对应 aria2-next -h#rpc 选项列表 (共 9 项)
  * ==============================================================================
  */
 
@@ -90,6 +90,17 @@ export const rpcOptions = [
     "descriptionKey": "pause.description",
     "type": "boolean",
     "defaultValue": "false",
+    "options": null,
+    "suffix": null,
+    "required": false,
+    "readonly": false
+  },
+  {
+    "key": "gid",
+    "nameKey": "gid.name",
+    "descriptionKey": "gid.description",
+    "type": "string",
+    "defaultValue": "",
     "options": null,
     "suffix": null,
     "required": false,

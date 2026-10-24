@@ -1,8 +1,8 @@
 /**
  * ==============================================================================
- * 下载选项模块: 媒体流设置 (Media Stream Settings)
+ * 下载选项模块: 流媒体设置 (Media Stream Settings)
  * ==============================================================================
- * 说明: 如需在该分类下新增或修改选项，可直接在此处编辑/增加配置对象。
+ * 对应 aria2-next -h#media 选项列表 (共 11 项)
  * ==============================================================================
  */
 
@@ -66,7 +66,7 @@ export const mediaOptions = [
     "nameKey": "media-subtitles.name",
     "descriptionKey": "media-subtitles.description",
     "type": "string",
-    "defaultValue": "all",
+    "defaultValue": "none",
     "options": null,
     "suffix": null,
     "required": false,
@@ -88,7 +88,7 @@ export const mediaOptions = [
     "nameKey": "media-record-time.name",
     "descriptionKey": "media-record-time.description",
     "type": "string",
-    "defaultValue": "",
+    "defaultValue": "0",
     "options": null,
     "suffix": null,
     "required": false,
@@ -99,7 +99,7 @@ export const mediaOptions = [
     "nameKey": "media-start-time.name",
     "descriptionKey": "media-start-time.description",
     "type": "string",
-    "defaultValue": "",
+    "defaultValue": "0",
     "options": null,
     "suffix": null,
     "required": false,
@@ -110,7 +110,7 @@ export const mediaOptions = [
     "nameKey": "media-end-time.name",
     "descriptionKey": "media-end-time.description",
     "type": "string",
-    "defaultValue": "",
+    "defaultValue": "0",
     "options": null,
     "suffix": null,
     "required": false,

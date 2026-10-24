@@ -2,11 +2,81 @@
  * ==============================================================================
  * 下载选项模块: BitTorrent 设置 (BitTorrent Settings)
  * ==============================================================================
- * 说明: 如需在该分类下新增或修改选项，可直接在此处编辑/增加配置对象。
+ * 对应 aria2-next -h#bittorrent 选项列表 (共 40 项)
  * ==============================================================================
  */
 
 export const bittorrentOptions = [
+  {
+    "key": "torrent-file",
+    "nameKey": "torrent-file.name",
+    "descriptionKey": "torrent-file.description",
+    "type": "string",
+    "defaultValue": "",
+    "options": null,
+    "suffix": null,
+    "required": false,
+    "readonly": false
+  },
+  {
+    "key": "follow-torrent",
+    "nameKey": "follow-torrent.name",
+    "descriptionKey": "follow-torrent.description",
+    "type": "option",
+    "defaultValue": "true",
+    "options": [
+      "true",
+      "false",
+      "mem"
+    ],
+    "suffix": null,
+    "required": true,
+    "readonly": false
+  },
+  {
+    "key": "select-file",
+    "nameKey": "select-file.name",
+    "descriptionKey": "select-file.description",
+    "type": "string",
+    "defaultValue": "",
+    "options": null,
+    "suffix": null,
+    "required": false,
+    "readonly": false
+  },
+  {
+    "key": "show-files",
+    "nameKey": "show-files.name",
+    "descriptionKey": "show-files.description",
+    "type": "boolean",
+    "defaultValue": "false",
+    "options": null,
+    "suffix": null,
+    "required": false,
+    "readonly": true
+  },
+  {
+    "key": "pause-metadata",
+    "nameKey": "pause-metadata.name",
+    "descriptionKey": "pause-metadata.description",
+    "type": "boolean",
+    "defaultValue": "false",
+    "options": null,
+    "suffix": null,
+    "required": true,
+    "readonly": false
+  },
+  {
+    "key": "listen-port",
+    "nameKey": "listen-port.name",
+    "descriptionKey": "listen-port.description",
+    "type": "integer",
+    "defaultValue": "6881",
+    "options": null,
+    "suffix": null,
+    "required": false,
+    "readonly": true
+  },
   {
     "key": "enable-dht",
     "nameKey": "enable-dht.name",
@@ -34,7 +104,7 @@ export const bittorrentOptions = [
     "nameKey": "bt-enable-lpd.name",
     "descriptionKey": "bt-enable-lpd.description",
     "type": "boolean",
-    "defaultValue": "false",
+    "defaultValue": "true",
     "options": null,
     "suffix": null,
     "required": true,
@@ -108,7 +178,7 @@ export const bittorrentOptions = [
     "nameKey": "bt-max-peers.name",
     "descriptionKey": "bt-max-peers.description",
     "type": "integer",
-    "defaultValue": "55",
+    "defaultValue": "100",
     "options": null,
     "suffix": null,
     "required": true,
@@ -119,7 +189,7 @@ export const bittorrentOptions = [
     "nameKey": "bt-max-connections.name",
     "descriptionKey": "bt-max-connections.description",
     "type": "integer",
-    "defaultValue": "55",
+    "defaultValue": "500",
     "options": null,
     "suffix": null,
     "required": false,
@@ -130,7 +200,7 @@ export const bittorrentOptions = [
     "nameKey": "bt-max-uploads.name",
     "descriptionKey": "bt-max-uploads.description",
     "type": "integer",
-    "defaultValue": "0",
+    "defaultValue": "20",
     "options": null,
     "suffix": null,
     "required": false,
@@ -247,6 +317,17 @@ export const bittorrentOptions = [
     "readonly": false
   },
   {
+    "key": "hash-check-only",
+    "nameKey": "hash-check-only.name",
+    "descriptionKey": "hash-check-only.description",
+    "type": "boolean",
+    "defaultValue": "false",
+    "options": null,
+    "suffix": null,
+    "required": true,
+    "readonly": false
+  },
+  {
     "key": "detach-share-only",
     "nameKey": "detach-share-only.name",
     "descriptionKey": "detach-share-only.description",
@@ -255,43 +336,6 @@ export const bittorrentOptions = [
     "options": null,
     "suffix": null,
     "required": false,
-    "readonly": false
-  },
-  {
-    "key": "listen-port",
-    "nameKey": "listen-port.name",
-    "descriptionKey": "listen-port.description",
-    "type": "integer",
-    "defaultValue": "6881-6999",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": true
-  },
-  {
-    "key": "follow-torrent",
-    "nameKey": "follow-torrent.name",
-    "descriptionKey": "follow-torrent.description",
-    "type": "option",
-    "defaultValue": "true",
-    "options": [
-      "true",
-      "false",
-      "mem"
-    ],
-    "suffix": null,
-    "required": true,
-    "readonly": false
-  },
-  {
-    "key": "pause-metadata",
-    "nameKey": "pause-metadata.name",
-    "descriptionKey": "pause-metadata.description",
-    "type": "boolean",
-    "defaultValue": "false",
-    "options": null,
-    "suffix": null,
-    "required": true,
     "readonly": false
   },
   {
@@ -354,7 +398,7 @@ export const bittorrentOptions = [
     "nameKey": "bt-user-agent.name",
     "descriptionKey": "bt-user-agent.description",
     "type": "string",
-    "defaultValue": "",
+    "defaultValue": "qBittorrent/5.2.3",
     "options": null,
     "suffix": null,
     "required": false,
@@ -365,7 +409,7 @@ export const bittorrentOptions = [
     "nameKey": "bt-peer-id-prefix.name",
     "descriptionKey": "bt-peer-id-prefix.description",
     "type": "string",
-    "defaultValue": "",
+    "defaultValue": "-qB5230-",
     "options": null,
     "suffix": null,
     "required": false,
@@ -387,7 +431,7 @@ export const bittorrentOptions = [
     "nameKey": "bt-blocklist-scope.name",
     "descriptionKey": "bt-blocklist-scope.description",
     "type": "option",
-    "defaultValue": "all",
+    "defaultValue": "peers",
     "options": [
       "all",
       "peers",
@@ -402,7 +446,7 @@ export const bittorrentOptions = [
     "nameKey": "bt-rate-limit-overhead.name",
     "descriptionKey": "bt-rate-limit-overhead.description",
     "type": "boolean",
-    "defaultValue": "true",
+    "defaultValue": "false",
     "options": null,
     "suffix": null,
     "required": false,
@@ -413,7 +457,7 @@ export const bittorrentOptions = [
     "nameKey": "bt-dht-bootstrap-nodes.name",
     "descriptionKey": "bt-dht-bootstrap-nodes.description",
     "type": "text",
-    "defaultValue": "",
+    "defaultValue": "dht.libtorrent.org:25401,dht.transmissionbt.com:6881,router.bittorrent.com:6881,router.utorrent.com:6881",
     "options": null,
     "suffix": null,
     "required": false,

@@ -2,11 +2,22 @@
  * ==============================================================================
  * 下载选项模块: Metalink 设置 (Metalink Settings)
  * ==============================================================================
- * 说明: 如需在该分类下新增或修改选项，可直接在此处编辑/增加配置对象。
+ * 对应 aria2-next -h#metalink 选项列表 (共 2 项)
  * ==============================================================================
  */
 
 export const metalinkOptions = [
+  {
+    "key": "metalink-file",
+    "nameKey": "metalink-file.name",
+    "descriptionKey": "metalink-file.description",
+    "type": "string",
+    "defaultValue": "",
+    "options": null,
+    "suffix": null,
+    "required": false,
+    "readonly": false
+  },
   {
     "key": "follow-metalink",
     "nameKey": "follow-metalink.name",

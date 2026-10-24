@@ -2,82 +2,11 @@
  * ==============================================================================
  * 下载选项模块: 高级设置 (Advanced Settings)
  * ==============================================================================
- * 说明: 如需在该分类下新增或修改选项，可直接在此处编辑/增加配置对象。
+ * 对应 aria2-next -h#advanced 选项列表 (共 22 项)
  * ==============================================================================
  */
 
 export const advancedOptions = [
-  {
-    "key": "allow-overwrite",
-    "nameKey": "allow-overwrite.name",
-    "descriptionKey": "allow-overwrite.description",
-    "type": "boolean",
-    "defaultValue": "false",
-    "options": null,
-    "suffix": null,
-    "required": true,
-    "readonly": false
-  },
-  {
-    "key": "auto-file-renaming",
-    "nameKey": "auto-file-renaming.name",
-    "descriptionKey": "auto-file-renaming.description",
-    "type": "boolean",
-    "defaultValue": "true",
-    "options": null,
-    "suffix": null,
-    "required": true,
-    "readonly": false
-  },
-  {
-    "key": "file-allocation",
-    "nameKey": "file-allocation.name",
-    "descriptionKey": "file-allocation.description",
-    "type": "option",
-    "defaultValue": "prealloc",
-    "options": [
-      "none",
-      "prealloc",
-      "trunc",
-      "falloc"
-    ],
-    "suffix": null,
-    "required": true,
-    "readonly": false
-  },
-  {
-    "key": "remove-control-file",
-    "nameKey": "remove-control-file.name",
-    "descriptionKey": "remove-control-file.description",
-    "type": "boolean",
-    "defaultValue": "",
-    "options": null,
-    "suffix": null,
-    "required": true,
-    "readonly": false
-  },
-  {
-    "key": "save-not-found",
-    "nameKey": "save-not-found.name",
-    "descriptionKey": "save-not-found.description",
-    "type": "boolean",
-    "defaultValue": "true",
-    "options": null,
-    "suffix": null,
-    "required": true,
-    "readonly": false
-  },
-  {
-    "key": "hash-check-only",
-    "nameKey": "hash-check-only.name",
-    "descriptionKey": "hash-check-only.description",
-    "type": "boolean",
-    "defaultValue": "false",
-    "options": null,
-    "suffix": null,
-    "required": true,
-    "readonly": false
-  },
   {
     "key": "state-dir",
     "nameKey": "state-dir.name",
@@ -116,7 +45,7 @@ export const advancedOptions = [
     "nameKey": "state-save-interval.name",
     "descriptionKey": "state-save-interval.description",
     "type": "integer",
-    "defaultValue": "30",
+    "defaultValue": "10",
     "options": null,
     "suffix": "Seconds",
     "required": false,
@@ -145,28 +74,6 @@ export const advancedOptions = [
     "readonly": false
   },
   {
-    "key": "max-download-limit",
-    "nameKey": "max-download-limit.name",
-    "descriptionKey": "max-download-limit.description",
-    "type": "string",
-    "defaultValue": "0",
-    "options": null,
-    "suffix": "Bytes",
-    "required": true,
-    "readonly": false
-  },
-  {
-    "key": "max-overall-download-limit",
-    "nameKey": "max-overall-download-limit.name",
-    "descriptionKey": "max-overall-download-limit.description",
-    "type": "string",
-    "defaultValue": "0",
-    "options": null,
-    "suffix": "Bytes",
-    "required": true,
-    "readonly": false
-  },
-  {
     "key": "stop",
     "nameKey": "stop.name",
     "descriptionKey": "stop.description",
@@ -182,7 +89,7 @@ export const advancedOptions = [
     "nameKey": "stop-with-process.name",
     "descriptionKey": "stop-with-process.description",
     "type": "integer",
-    "defaultValue": "",
+    "defaultValue": "0",
     "options": null,
     "suffix": null,
     "required": false,
@@ -286,139 +193,7 @@ export const advancedOptions = [
     "nameKey": "log-max-files.name",
     "descriptionKey": "log-max-files.description",
     "type": "integer",
-    "defaultValue": "5",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": false
-  },
-  {
-    "key": "interface",
-    "nameKey": "interface.name",
-    "descriptionKey": "interface.description",
-    "type": "string",
-    "defaultValue": "",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": false
-  },
-  {
-    "key": "disable-ipv6",
-    "nameKey": "disable-ipv6.name",
-    "descriptionKey": "disable-ipv6.description",
-    "type": "boolean",
-    "defaultValue": "false",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": true
-  },
-  {
-    "key": "conf-path",
-    "nameKey": "conf-path.name",
-    "descriptionKey": "conf-path.description",
-    "type": "string",
-    "defaultValue": "$HOME/.aria2/aria2.conf",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": true
-  },
-  {
-    "key": "no-conf",
-    "nameKey": "no-conf.name",
-    "descriptionKey": "no-conf.description",
-    "type": "boolean",
-    "defaultValue": "",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": true
-  },
-  {
-    "key": "daemon",
-    "nameKey": "daemon.name",
-    "descriptionKey": "daemon.description",
-    "type": "boolean",
-    "defaultValue": "false",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": true
-  },
-  {
-    "key": "quiet",
-    "nameKey": "quiet.name",
-    "descriptionKey": "quiet.description",
-    "type": "boolean",
-    "defaultValue": "false",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": true
-  },
-  {
-    "key": "input-file",
-    "nameKey": "input-file.name",
-    "descriptionKey": "input-file.description",
-    "type": "string",
-    "defaultValue": "",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": false
-  },
-  {
-    "key": "index-out",
-    "nameKey": "index-out.name",
-    "descriptionKey": "index-out.description",
-    "type": "string",
-    "defaultValue": "",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": false
-  },
-  {
-    "key": "select-file",
-    "nameKey": "select-file.name",
-    "descriptionKey": "select-file.description",
-    "type": "string",
-    "defaultValue": "",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": false
-  },
-  {
-    "key": "show-files",
-    "nameKey": "show-files.name",
-    "descriptionKey": "show-files.description",
-    "type": "boolean",
-    "defaultValue": "",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": true
-  },
-  {
-    "key": "torrent-file",
-    "nameKey": "torrent-file.name",
-    "descriptionKey": "torrent-file.description",
-    "type": "string",
-    "defaultValue": "",
-    "options": null,
-    "suffix": null,
-    "required": false,
-    "readonly": false
-  },
-  {
-    "key": "metalink-file",
-    "nameKey": "metalink-file.name",
-    "descriptionKey": "metalink-file.description",
-    "type": "string",
-    "defaultValue": "",
+    "defaultValue": "4",
     "options": null,
     "suffix": null,
     "required": false,

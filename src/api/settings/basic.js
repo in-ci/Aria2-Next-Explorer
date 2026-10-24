@@ -2,7 +2,7 @@
  * ==============================================================================
  * 下载选项模块: 基本设置 (Basic Settings)
  * ==============================================================================
- * 说明: 如需在该分类下新增或修改选项，可直接在此处编辑/增加配置对象。
+ * 对应 aria2-next -h#basic 选项列表 (共 11 项)
  * ==============================================================================
  */
 
@@ -12,7 +12,7 @@ export const basicOptions = [
     "nameKey": "dir.name",
     "descriptionKey": "dir.description",
     "type": "string",
-    "defaultValue": "",
+    "defaultValue": ".",
     "options": null,
     "suffix": null,
     "required": true,
@@ -30,14 +30,14 @@ export const basicOptions = [
     "readonly": false
   },
   {
-    "key": "log",
-    "nameKey": "log.name",
-    "descriptionKey": "log.description",
+    "key": "input-file",
+    "nameKey": "input-file.name",
+    "descriptionKey": "input-file.description",
     "type": "string",
     "defaultValue": "",
     "options": null,
     "suffix": null,
-    "required": true,
+    "required": false,
     "readonly": false
   },
   {
@@ -46,6 +46,17 @@ export const basicOptions = [
     "descriptionKey": "max-concurrent-downloads.description",
     "type": "integer",
     "defaultValue": "5",
+    "options": null,
+    "suffix": null,
+    "required": true,
+    "readonly": false
+  },
+  {
+    "key": "continue",
+    "nameKey": "continue.name",
+    "descriptionKey": "continue.description",
+    "type": "boolean",
+    "defaultValue": "false",
     "options": null,
     "suffix": null,
     "required": true,
@@ -63,10 +74,10 @@ export const basicOptions = [
     "readonly": false
   },
   {
-    "key": "continue",
-    "nameKey": "continue.name",
-    "descriptionKey": "continue.description",
-    "type": "boolean",
+    "key": "log",
+    "nameKey": "log.name",
+    "descriptionKey": "log.description",
+    "type": "string",
     "defaultValue": "",
     "options": null,
     "suffix": null,
@@ -74,66 +85,48 @@ export const basicOptions = [
     "readonly": false
   },
   {
-    "key": "force-save",
-    "nameKey": "force-save.name",
-    "descriptionKey": "force-save.description",
+    "key": "quiet",
+    "nameKey": "quiet.name",
+    "descriptionKey": "quiet.description",
     "type": "boolean",
     "defaultValue": "false",
     "options": null,
     "suffix": null,
-    "required": true,
-    "readonly": false
+    "required": false,
+    "readonly": true
   },
   {
-    "key": "filename-hint",
-    "nameKey": "filename-hint.name",
-    "descriptionKey": "filename-hint.description",
-    "type": "string",
-    "defaultValue": "",
+    "key": "daemon",
+    "nameKey": "daemon.name",
+    "descriptionKey": "daemon.description",
+    "type": "boolean",
+    "defaultValue": "false",
     "options": null,
     "suffix": null,
     "required": false,
-    "readonly": false
+    "readonly": true
   },
   {
-    "key": "filename-hint-source",
-    "nameKey": "filename-hint-source.name",
-    "descriptionKey": "filename-hint-source.description",
-    "type": "option",
-    "defaultValue": "suggested",
-    "options": [
-      "suggested",
-      "browser",
-      "title"
-    ],
-    "suffix": null,
-    "required": false,
-    "readonly": false
-  },
-  {
-    "key": "incomplete-suffix",
-    "nameKey": "incomplete-suffix.name",
-    "descriptionKey": "incomplete-suffix.description",
+    "key": "conf-path",
+    "nameKey": "conf-path.name",
+    "descriptionKey": "conf-path.description",
     "type": "string",
-    "defaultValue": ".part",
+    "defaultValue": "$HOME/.aria2/aria2.conf",
     "options": null,
     "suffix": null,
     "required": false,
-    "readonly": false
+    "readonly": true
   },
   {
-    "key": "auto-file-renaming-style",
-    "nameKey": "auto-file-renaming-style.name",
-    "descriptionKey": "auto-file-renaming-style.description",
-    "type": "option",
-    "defaultValue": "dot",
-    "options": [
-      "dot",
-      "parentheses"
-    ],
+    "key": "no-conf",
+    "nameKey": "no-conf.name",
+    "descriptionKey": "no-conf.description",
+    "type": "boolean",
+    "defaultValue": "false",
+    "options": null,
     "suffix": null,
     "required": false,
-    "readonly": false
+    "readonly": true
   }
 ];
 

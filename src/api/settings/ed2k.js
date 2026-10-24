@@ -1,8 +1,8 @@
 /**
  * ==============================================================================
- * 下载选项模块: ED2K (电驴) 设置 (ED2K Settings)
+ * 下载选项模块: ED2K 电驴设置 (ED2K Settings)
  * ==============================================================================
- * 说明: 如需在该分类下新增或修改选项，可直接在此处编辑/增加配置对象。
+ * 对应 aria2-next -h#ed2k 选项列表 (共 9 项)
  * ==============================================================================
  */
 
@@ -78,7 +78,7 @@ export const ed2kOptions = [
     "nameKey": "ed2k-upload-slots.name",
     "descriptionKey": "ed2k-upload-slots.description",
     "type": "integer",
-    "defaultValue": "4",
+    "defaultValue": "3",
     "options": null,
     "suffix": null,
     "required": false,
