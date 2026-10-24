@@ -2,7 +2,7 @@
   <section class="content no-padding">
     <form name="newTaskForm" @submit.prevent="submitTask(false)" novalidate>
       <div class="nav-tabs-custom">
-        <!-- 顶部标签切换栏与右侧操作按钮栏 (与原作者 AriaNg 布局完全对齐) -->
+        <!-- 顶部标签切换栏与操作工具栏 (完全还原原版 AriaNg: 工具栏紧随选项右侧竖线左对齐) -->
         <ul class="nav nav-tabs">
           <!-- 标签 1: 链接 / 种子文件 -->
           <li class="nav-item" :class="{ active: currentTab === 'links' }">
@@ -24,11 +24,12 @@
             </a>
           </li>
 
+          <!-- 分隔竖线 (紧贴选项右侧) -->
           <li class="divider"></li>
 
-          <!-- 右侧操作工具栏 -->
-          <li class="nav-toolbar ml-auto d-flex align-items-center pr-2">
-            <!-- 打开种子 / Metalink 文件下拉按钮 -->
+          <!-- 操作工具栏 (左侧紧贴 divider 竖线，还原原版居左紧凑排布) -->
+          <li class="nav-toolbar d-flex align-items-center ml-2">
+            <!-- 1. 打开种子 / Metalink 文件下拉按钮 (紧靠竖线) -->
             <div class="btn-group mr-2" style="position: relative;">
               <button
                 type="button"
@@ -39,10 +40,10 @@
                 <i class="fa fa-folder-open-o fa-1_1x"></i>
               </button>
               <ul
-                class="dropdown-menu dropdown-menu-right shadow-sm"
+                class="dropdown-menu shadow-sm"
                 :class="{ show: isFolderDropdownOpen }"
                 v-if="isFolderDropdownOpen"
-                style="display: block; position: absolute; right: 0; top: 100%; z-index: 1050;"
+                style="display: block; position: absolute; left: 0; top: 100%; z-index: 1050;"
                 @click.stop
               >
                 <li>
@@ -58,7 +59,7 @@
               </ul>
             </div>
 
-            <!-- 立即下载 / 稍后下载 / 浏览器下载 组合按钮 -->
+            <!-- 2. 立即下载 / 稍后下载 / 浏览器下载 组合按钮 -->
             <div class="btn-group mr-2" style="position: relative;">
               <button
                 type="submit"
@@ -86,10 +87,10 @@
                 <span class="sr-only">Toggle Dropdown</span>
               </button>
               <ul
-                class="dropdown-menu dropdown-menu-right shadow-sm"
+                class="dropdown-menu shadow-sm"
                 :class="{ show: isDownloadDropdownOpen }"
                 v-if="isDownloadDropdownOpen"
-                style="display: block; position: absolute; right: 0; top: 100%; z-index: 1050;"
+                style="display: block; position: absolute; left: 0; top: 100%; z-index: 1050;"
                 @click.stop
               >
                 <li>
@@ -106,7 +107,7 @@
               </ul>
             </div>
 
-            <!-- 重置表单按钮 -->
+            <!-- 3. 重置表单按钮 -->
             <button
               type="button"
               class="btn btn-sm"
@@ -185,7 +186,7 @@
             </div>
           </div>
 
-          <!-- 标签页 2: 详细任务下载选项 (基础设置 / 高级设置过滤器) -->
+          <!-- 标签页 2: 详细任务下载选项 (依据协议类型差分展示，基础设置/高级设置过滤) -->
           <div class="tab-pane" :class="{ active: currentTab === 'options' }">
             <div class="settings-table striped hoverable">
               <!-- 选项过滤器切换栏 -->
@@ -219,7 +220,7 @@
                 </div>
               </div>
 
-              <!-- 渲染当前激活的选项列表 (与原版一致，支持单任务文件名、下载目录、请求头等) -->
+              <!-- 渲染当前激活的选项列表 (依协议差分过滤，HTTP/HTTPS 不展示 BT 参数，BT 任务不展示 HTTP 请求头) -->
               <SettingRow
                 v-for="opt in visibleOptions"
                 :key="opt.key"
@@ -258,9 +259,11 @@
  * ==============================================================================
  * 100% 对齐原版 AriaNg / DownHub 的新增任务架构与交互逻辑：
  * 1. 包含 Links 链接与 Options 详细参数两大核心标签页。
- * 2. 具备完整的“基本设置”与“高级设置”过滤器切换机制。
- * 3. 完整支持扩展拦截下载唤起，自动解码 Base64 URL 并回填文件名、保存路径、自定义请求头 (Cookie / User-Agent) 及 Referer。
- * 4. 支持立即下载、稍后下载 (添加后暂停) 以及通过浏览器原生接口下载。
+ * 2. 操作工具栏紧贴 Options 标签页右侧的竖线左对齐排列，还原原作者紧凑界面。
+ * 3. 支持依据当前下载类型（HTTP/HTTPS/FTP、BT/磁力链接、ED2K、媒体流）差分过滤选项。
+ *    对于 HTTPS/HTTP 链接，自动隐藏 bt-tracker、seed-ratio 等所有 BT 选项，界面极度清爽。
+ * 4. 完整支持扩展拦截下载唤起，自动解码 Base64 URL 并回填文件名、保存路径、自定义请求头 (Cookie / User-Agent) 及 Referer。
+ * 5. 支持立即下载、稍后下载 (添加后暂停) 以及通过浏览器原生接口下载。
  * ==============================================================================
  */
 
@@ -309,67 +312,77 @@ const taskOptions = ref({});
 /** 当前服务端全局默认选项缓存 */
 const globalOptions = ref({});
 
-/** 原版 AriaNg 新建任务支持的 46 项配置及其基础/高级分类优先级映射表 */
-const TASK_OPTIONS_PRIORITY_MAP = {
-  "dir": "basic",
-  "out": "basic",
-  "filename-hint": "basic",
-  "filename-hint-source": "advanced",
-  "incomplete-suffix": "advanced",
-  "auto-file-renaming-style": "advanced",
-  "allow-overwrite": "advanced",
-  "max-download-limit": "basic",
-  "max-upload-limit": "basic",
-  "split": "basic",
-  "min-split-size": "advanced",
-  "max-connection-per-server": "advanced",
-  "lowest-speed-limit": "advanced",
-  "all-proxy": "basic",
-  "all-proxy-user": "advanced",
-  "all-proxy-passwd": "advanced",
-  "http-user": "advanced",
-  "http-passwd": "advanced",
-  "checksum": "advanced",
-  "continue": "basic",
-  "referer": "basic",
-  "force-save": "basic",
-  "header": "basic",
-  "bt-max-peers": "advanced",
-  "bt-max-connections": "advanced",
-  "bt-max-uploads": "advanced",
-  "bt-max-uploads-per-torrent": "advanced",
-  "bt-encryption": "advanced",
-  "bt-transport": "advanced",
-  "bt-super-seeding": "advanced",
-  "bt-first-last-piece-first": "advanced",
-  "bt-file-priority": "advanced",
-  "force-sequential": "advanced",
-  "detach-share-only": "advanced",
-  "bt-tracker": "basic",
-  "bt-exclude-tracker": "advanced",
-  "seed-ratio": "basic",
-  "seed-time": "basic",
-  "pause-metadata": "advanced",
-  "check-integrity": "advanced",
-  "file-allocation": "advanced",
-  "ed2k-preview-priority": "advanced",
-  "media": "advanced",
-  "media-format": "advanced",
-  "media-video": "advanced",
-  "media-audio": "advanced",
-};
+/** 原版 AriaNg 新建任务 46 项配置及其分类 (category) 与基础/高级优先级 (priority) 映射表 */
+const TASK_OPTIONS_CONFIG = [
+  // 1. 全局基础与控制选项 (任何下载协议均适用)
+  { key: "dir", category: "global", priority: "basic" },
+  { key: "max-download-limit", category: "global", priority: "basic" },
+  { key: "force-save", category: "global", priority: "basic" },
+  { key: "auto-file-renaming-style", category: "global", priority: "advanced" },
+  { key: "allow-overwrite", category: "global", priority: "advanced" },
+  { key: "check-integrity", category: "global", priority: "advanced" },
+  { key: "file-allocation", category: "global", priority: "advanced" },
 
-/** 计算属性：按配置过滤排序后的可用选项列表 */
+  // 2. HTTP / HTTPS / FTP / SFTP 专属选项 (非 BT 协议显示，BT 任务不显示)
+  { key: "out", category: "http", priority: "basic" },
+  { key: "filename-hint", category: "http", priority: "basic" },
+  { key: "split", category: "http", priority: "basic" },
+  { key: "continue", category: "http", priority: "basic" },
+  { key: "referer", category: "http", priority: "basic" },
+  { key: "header", category: "http", priority: "basic" },
+  { key: "all-proxy", category: "http", priority: "basic" },
+  { key: "filename-hint-source", category: "http", priority: "advanced" },
+  { key: "incomplete-suffix", category: "http", priority: "advanced" },
+  { key: "min-split-size", category: "http", priority: "advanced" },
+  { key: "max-connection-per-server", category: "http", priority: "advanced" },
+  { key: "lowest-speed-limit", category: "http", priority: "advanced" },
+  { key: "all-proxy-user", category: "http", priority: "advanced" },
+  { key: "all-proxy-passwd", category: "http", priority: "advanced" },
+  { key: "http-user", category: "http", priority: "advanced" },
+  { key: "http-passwd", category: "http", priority: "advanced" },
+  { key: "checksum", category: "http", priority: "advanced" },
+
+  // 3. BitTorrent / Magnet 专属选项 (仅在 BT/磁力链接任务时展示，HTTP/HTTPS 下载彻底隐藏)
+  { key: "max-upload-limit", category: "bittorrent", priority: "basic" },
+  { key: "bt-tracker", category: "bittorrent", priority: "basic" },
+  { key: "seed-ratio", category: "bittorrent", priority: "basic" },
+  { key: "seed-time", category: "bittorrent", priority: "basic" },
+  { key: "bt-max-peers", category: "bittorrent", priority: "advanced" },
+  { key: "bt-max-connections", category: "bittorrent", priority: "advanced" },
+  { key: "bt-max-uploads", category: "bittorrent", priority: "advanced" },
+  { key: "bt-max-uploads-per-torrent", category: "bittorrent", priority: "advanced" },
+  { key: "bt-encryption", category: "bittorrent", priority: "advanced" },
+  { key: "bt-transport", category: "bittorrent", priority: "advanced" },
+  { key: "bt-super-seeding", category: "bittorrent", priority: "advanced" },
+  { key: "bt-first-last-piece-first", category: "bittorrent", priority: "advanced" },
+  { key: "bt-file-priority", category: "bittorrent", priority: "advanced" },
+  { key: "force-sequential", category: "bittorrent", priority: "advanced" },
+  { key: "detach-share-only", category: "bittorrent", priority: "advanced" },
+  { key: "bt-exclude-tracker", category: "bittorrent", priority: "advanced" },
+  { key: "pause-metadata", category: "bittorrent", priority: "advanced" },
+
+  // 4. ED2K 电驴专有选项
+  { key: "ed2k-preview-priority", category: "ed2k", priority: "advanced" },
+
+  // 5. 媒体流专有选项
+  { key: "media", category: "media", priority: "advanced" },
+  { key: "media-format", category: "media", priority: "advanced" },
+  { key: "media-video", category: "media", priority: "advanced" },
+  { key: "media-audio", category: "media", priority: "advanced" },
+];
+
+/** 计算属性：按配置过滤并注入元数据的全量选项列表 */
 const availableOptions = computed(() => {
   const all = getAllSettingsOptions();
   const optionMap = new Map(all.map((opt) => [opt.key, opt]));
   const result = [];
 
-  for (const [key, priority] of Object.entries(TASK_OPTIONS_PRIORITY_MAP)) {
-    if (optionMap.has(key)) {
+  for (const item of TASK_OPTIONS_CONFIG) {
+    if (optionMap.has(item.key)) {
       result.push({
-        ...optionMap.get(key),
-        priority,
+        ...optionMap.get(item.key),
+        category: item.category,
+        priority: item.priority,
       });
     }
   }
@@ -382,22 +395,80 @@ const availableOptions = computed(() => {
   });
 });
 
-/** 计算属性：根据过滤器当前勾选状态最终渲染的选项集合 */
-const visibleOptions = computed(() => {
-  return availableOptions.value.filter((opt) => {
-    if (opt.priority === "basic") {
-      return optionFilter.value.basic;
-    }
-    return optionFilter.value.advanced;
-  });
-});
-
 /** 计算属性：按行解析出的合规链接列表 */
 const validUrls = computed(() => {
   return urlsText.value
     .split(/\r?\n/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0 && !s.startsWith("#"));
+});
+
+/**
+ * 计算属性：智能侦测当前下载任务的协议类型
+ * 依据链接前缀动态判断是 HTTP/HTTPS、BitTorrent 还是 ED2K，用于实现选项差分显示
+ */
+const detectedProtocols = computed(() => {
+  if (taskType.value === "torrent") {
+    return { isBt: true, isHttp: false, isEd2k: false, isMedia: false };
+  }
+  if (taskType.value === "metalink") {
+    return { isBt: false, isHttp: false, isEd2k: false, isMedia: false, isMetalink: true };
+  }
+
+  const urls = validUrls.value;
+  if (urls.length === 0) {
+    // 尚未输入任何链接时，默认作为通用普通下载显示
+    return { isBt: false, isHttp: true, isEd2k: false, isMedia: false };
+  }
+
+  let isBt = false;
+  let isHttp = false;
+  let isEd2k = false;
+  let isMedia = false;
+
+  for (const u of urls) {
+    const lower = u.toLowerCase();
+    if (lower.startsWith("magnet:")) {
+      isBt = true;
+    } else if (lower.startsWith("ed2k://")) {
+      isEd2k = true;
+    } else if (lower.includes(".m3u8") || lower.startsWith("media://")) {
+      isMedia = true;
+      isHttp = true;
+    } else {
+      isHttp = true;
+    }
+  }
+
+  return { isBt, isHttp, isEd2k, isMedia };
+});
+
+/**
+ * 校验当前选项是否与当前任务的下载协议相匹配 (差分过滤)
+ * 例如：普通 HTTP/HTTPS 链接不会显示任何 BT 选项
+ * @param {object} opt 选项定义对象
+ * @returns {boolean}
+ */
+function isOptionCategoryMatch(opt) {
+  if (opt.category === "global") return true;
+  const p = detectedProtocols.value;
+  if (opt.category === "http") return p.isHttp;
+  if (opt.category === "bittorrent") return p.isBt;
+  if (opt.category === "ed2k") return p.isEd2k;
+  if (opt.category === "media") return p.isMedia;
+  return true;
+}
+
+/** 计算属性：根据协议类型匹配与基础/高级过滤器最终渲染的选项集合 */
+const visibleOptions = computed(() => {
+  return availableOptions.value
+    .filter(isOptionCategoryMatch)
+    .filter((opt) => {
+      if (opt.priority === "basic") {
+        return optionFilter.value.basic;
+      }
+      return optionFilter.value.advanced;
+    });
 });
 
 /** 计算属性：当前任务输入是否满足提交条件 */
@@ -749,8 +820,16 @@ watch(
   border-color: #007bff;
   background-color: rgba(0, 123, 255, 0.05);
 }
+.nav-tabs-custom > .nav-tabs > li.divider {
+  padding: 10px 0;
+  margin-left: 6px;
+  margin-right: 6px;
+  margin-top: 10px;
+  border-right: 1px solid #ccc;
+  height: 20px;
+}
 .nav-tabs-custom > .nav-tabs > li.nav-toolbar {
-  margin-left: auto;
+  margin-left: 6px;
 }
 .dropdown-menu {
   min-width: 160px;
