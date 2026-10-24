@@ -314,23 +314,31 @@ const globalOptions = computed(() => store.globalOptions || {});
 
 /** 原版 AriaNg 新建任务 46 项配置及其分类 (category) 与基础/高级优先级 (priority) 映射表 */
 const TASK_OPTIONS_CONFIG = [
-  // 1. 全局基础与控制选项 (任何下载协议均适用)
-  { key: "dir", category: "global", priority: "basic" },
-  { key: "max-download-limit", category: "global", priority: "basic" },
-  { key: "force-save", category: "global", priority: "basic" },
+  // 1. 用户期望优先呈现的核心基础选项 (严格按期望顺序排列)
+  { key: "dir", category: "global", priority: "basic" }, // 下载路径
+  { key: "out", category: "http", priority: "basic" }, // 文件名
+  { key: "max-download-limit", category: "global", priority: "basic" }, // 最大下载速度
+  { key: "split", category: "http", priority: "basic" }, // 单任务连接数
+  { key: "continue", category: "http", priority: "basic" }, // 断点续传
+  { key: "referer", category: "http", priority: "basic" }, // 请求来源
+  { key: "all-proxy", category: "http", priority: "basic" }, // 代理服务器
+  { key: "header", category: "http", priority: "basic" }, // 自定义请求头
+  { key: "filename-hint", category: "http", priority: "basic" }, // 文件名提示
+
+  // 2. 其余全局基础选项
+  { key: "force-save", category: "global", priority: "basic" }, // 强制保存
+
+  // 3. BitTorrent / Magnet 专属基础选项 (仅在 BT/磁力链接任务时展示，HTTP/HTTPS 下载彻底隐藏)
+  { key: "max-upload-limit", category: "bittorrent", priority: "basic" },
+  { key: "bt-tracker", category: "bittorrent", priority: "basic" },
+  { key: "seed-ratio", category: "bittorrent", priority: "basic" },
+  { key: "seed-time", category: "bittorrent", priority: "basic" },
+
+  // 4. 高级设置选项 (勾选“高级设置”过滤器时显示)
   { key: "auto-file-renaming-style", category: "global", priority: "advanced" },
   { key: "allow-overwrite", category: "global", priority: "advanced" },
   { key: "check-integrity", category: "global", priority: "advanced" },
   { key: "file-allocation", category: "global", priority: "advanced" },
-
-  // 2. HTTP / HTTPS / FTP / SFTP 专属选项 (非 BT 协议显示，BT 任务不显示)
-  { key: "out", category: "http", priority: "basic" },
-  { key: "filename-hint", category: "http", priority: "basic" },
-  { key: "split", category: "http", priority: "basic" },
-  { key: "continue", category: "http", priority: "basic" },
-  { key: "referer", category: "http", priority: "basic" },
-  { key: "header", category: "http", priority: "basic" },
-  { key: "all-proxy", category: "http", priority: "basic" },
   { key: "filename-hint-source", category: "http", priority: "advanced" },
   { key: "incomplete-suffix", category: "http", priority: "advanced" },
   { key: "min-split-size", category: "http", priority: "advanced" },
@@ -341,12 +349,6 @@ const TASK_OPTIONS_CONFIG = [
   { key: "http-user", category: "http", priority: "advanced" },
   { key: "http-passwd", category: "http", priority: "advanced" },
   { key: "checksum", category: "http", priority: "advanced" },
-
-  // 3. BitTorrent / Magnet 专属选项 (仅在 BT/磁力链接任务时展示，HTTP/HTTPS 下载彻底隐藏)
-  { key: "max-upload-limit", category: "bittorrent", priority: "basic" },
-  { key: "bt-tracker", category: "bittorrent", priority: "basic" },
-  { key: "seed-ratio", category: "bittorrent", priority: "basic" },
-  { key: "seed-time", category: "bittorrent", priority: "basic" },
   { key: "bt-max-peers", category: "bittorrent", priority: "advanced" },
   { key: "bt-max-connections", category: "bittorrent", priority: "advanced" },
   { key: "bt-max-uploads", category: "bittorrent", priority: "advanced" },
@@ -361,10 +363,10 @@ const TASK_OPTIONS_CONFIG = [
   { key: "bt-exclude-tracker", category: "bittorrent", priority: "advanced" },
   { key: "pause-metadata", category: "bittorrent", priority: "advanced" },
 
-  // 4. ED2K 电驴专有选项
+  // 5. ED2K 电驴专有高级选项
   { key: "ed2k-preview-priority", category: "ed2k", priority: "advanced" },
 
-  // 5. 媒体流专有选项
+  // 6. 媒体流专有高级选项
   { key: "media", category: "media", priority: "advanced" },
   { key: "media-format", category: "media", priority: "advanced" },
   { key: "media-video", category: "media", priority: "advanced" },
