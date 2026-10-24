@@ -84,6 +84,66 @@
             <div class="row">
               <div class="setting-key setting-key-without-desc col-sm-4">
                 <span>{{ $t("Page Title") }}</span>
+                <!-- 蓝色圆圈小问号及悬停显示支持的占位符帮助浮层 -->
+                <div
+                  class="page-title-help-wrapper position-relative d-inline-block ml-1"
+                  @mouseenter="isHelpPopoverOpen = true"
+                  @mouseleave="isHelpPopoverOpen = false"
+                >
+                  <i
+                    class="icon-primary fa fa-question-circle pointer-cursor"
+                    @click.stop="isHelpPopoverOpen = !isHelpPopoverOpen"
+                  ></i>
+
+                  <div
+                    v-if="isHelpPopoverOpen"
+                    class="popover bs-popover-right right page-title-popover shadow-sm show"
+                    role="tooltip"
+                    @click.stop
+                  >
+                    <div class="popover-arrow"></div>
+                    <div class="popover-body p-2">
+                      <div class="font-weight-bold mb-1 border-bottom pb-1">
+                        {{ $t("Supported Placeholder") }}:
+                      </div>
+                      <div class="popover-item-line">
+                        <span>{{ $t("AriaNg Title") }}:</span>
+                        <code class="popover-code">${title}</code>
+                      </div>
+                      <div class="popover-item-line">
+                        <span>{{ $t("Current RPC Alias") }}:</span>
+                        <code class="popover-code">${rpcprofile}</code>
+                      </div>
+                      <div class="popover-item-line">
+                        <span>{{ $t("Downloading Count") }}:</span>
+                        <code class="popover-code">${downloading}</code>
+                      </div>
+                      <div class="popover-item-line">
+                        <span>{{ $t("Waiting Count") }}:</span>
+                        <code class="popover-code">${waiting}</code>
+                      </div>
+                      <div class="popover-item-line">
+                        <span>{{ $t("Stopped Count") }}:</span>
+                        <code class="popover-code">${stopped}</code>
+                      </div>
+                      <div class="popover-item-line">
+                        <span>{{ $t("Download Speed") }}:</span>
+                        <code class="popover-code">${downspeed}</code>
+                      </div>
+                      <div class="popover-item-line mb-2">
+                        <span>{{ $t("Upload Speed") }}:</span>
+                        <code class="popover-code">${upspeed}</code>
+                      </div>
+                      <div class="popover-tips-text small text-muted mb-2">
+                        {{ $t('Tips: You can use the "noprefix" tag to ignore the prefix, "nosuffix" tag to ignore the suffix, and "scale=n" tag to set the decimal precision.') }}
+                      </div>
+                      <div class="small font-weight-bold mb-1">{{ $t("Example") }}:</div>
+                      <div class="popover-example-box font-monospace small">
+                        ${downspeed:noprefix:nosuffix:scale=1}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div class="setting-value col-sm-8">
                 <div class="form-group mb-1">
@@ -310,13 +370,15 @@
  * ==============================================================================
  */
 
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { store, rpcList, currentRpc, applyTheme, applyAnimationEffects, switchRpcServer } from "../store";
 import { setLanguage, currentLang, t } from "../i18n";
 import { formatPageTitle } from "../utils/title";
 
 /** 当前选项卡 ('global' 或 'rpc_0', 'rpc_1' 等) */
 const currentTab = ref("global");
+/** 页面标题帮助 Popover 展开状态 */
+const isHelpPopoverOpen = ref(false);
 /** 是否明文显示 RPC 密钥输入框 */
 const showSecret = ref(false);
 /** 当前选中的界面语言 */
@@ -531,4 +593,123 @@ function removeRpcServer(index) {
 function activateRpc(index) {
   switchRpcServer(index);
 }
+
+function closeHelpPopover() {
+  isHelpPopoverOpen.value = false;
+}
+
+onMounted(() => {
+  window.addEventListener("click", closeHelpPopover);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("click", closeHelpPopover);
+});
 </script>
+
+<style scoped>
+.page-title-help-wrapper {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.page-title-popover {
+  position: absolute;
+  top: 50%;
+  left: 22px;
+  transform: translateY(-50%);
+  width: 320px;
+  max-width: 90vw;
+  background-color: #ffffff;
+  color: #333333;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1070;
+  display: block;
+  font-size: 12px;
+  text-align: left;
+  line-height: 1.5;
+  user-select: text;
+}
+
+:root.dark-theme .page-title-popover,
+:root.theme-dark .page-title-popover,
+.theme-dark .page-title-popover {
+  background-color: #24282d;
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+.page-title-popover .popover-arrow {
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 7px solid #ffffff;
+}
+
+:root.dark-theme .page-title-popover .popover-arrow,
+:root.theme-dark .page-title-popover .popover-arrow,
+.theme-dark .page-title-popover .popover-arrow {
+  border-right-color: #24282d;
+}
+
+.popover-item-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.popover-code {
+  font-size: 11px;
+  background-color: rgba(0, 0, 0, 0.06);
+  color: #0366d6;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+:root.dark-theme .popover-code,
+:root.theme-dark .popover-code,
+.theme-dark .popover-code {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #79c0ff;
+}
+
+.popover-tips-text {
+  line-height: 1.45;
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+  padding-top: 6px;
+}
+
+:root.dark-theme .popover-tips-text,
+:root.theme-dark .popover-tips-text,
+.theme-dark .popover-tips-text {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+.popover-example-box {
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #28a745;
+  user-select: all;
+}
+
+:root.dark-theme .popover-example-box,
+:root.theme-dark .popover-example-box,
+.theme-dark .popover-example-box {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #7ee787;
+}
+</style>
