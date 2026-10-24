@@ -566,4 +566,31 @@ function getSortIcon(field) {
 .task-table .task-action-btn + .task-action-btn {
   border-left: none !important;
 }
+/* 紧凑模式下任务列表条目尺寸适度收敛，与侧边栏紧凑高度同向一致 */
+.task-table .row.compact-list {
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+  min-height: 34px !important;
+}
+
+.compact-list .task-name {
+  font-size: 0.82rem !important;
+}
+
+.compact-list .task-progress-bar {
+  height: 9px !important;
+}
+
+.compact-list :deep(.task-hover-actions),
+.compact-list .task-hover-actions {
+  height: 24px !important;
+}
+
+.compact-list :deep(.task-action-btn),
+.compact-list .task-action-btn {
+  height: 20px !important;
+  min-width: 24px !important;
+  padding: 0 5px !important;
+  font-size: 11px !important;
+}
 </style>

@@ -1383,7 +1383,8 @@ input-dropdown[input-class-name="form-control"] > .input-dropdown {
   cursor: grab;
 }
 .task-table > .task-table-body > div.row {
-  --row-pad-y: 6px;
+  --row-pad-y: 8px;
+  min-height: 48px;
   position: relative;
   border-inline: 1px solid #ddd;
   border-radius: 0.25rem;
@@ -1410,7 +1411,8 @@ input-dropdown[input-class-name="form-control"] > .input-dropdown {
   border-bottom: 1px solid #dee2e6;
 }
 .compact-mode .task-table > .task-table-body > div.row {
-  --row-pad-y: 8px;
+  --row-pad-y: 3px;
+  min-height: 34px;
   border-radius: 0;
 }
 .compact-mode .task-table > .task-table-body > div.row:first-child {
@@ -1751,7 +1753,7 @@ input-dropdown[input-class-name="form-control"] > .input-dropdown {
 }
 .compact-mode .task-table .task-right-arrow i,
 .task-table .compact-list ~ .task-right-arrow i {
-  font-size: 2rem;
+  font-size: 1.15rem;
 }
 .task-table .task-right-arrow a:hover i {
   color: #a8a8a8;
@@ -4013,4 +4015,38 @@ body a {
 .theme-dark.skin-aria-ng select.form-control:focus,
 .theme-dark.skin-aria-ng select:focus {
   border-color: #5399e8;
+}
+
+
+/* ==============================================================================
+ * 紧凑模式增强：侧边栏与页面选项（设置表格、任务列表）高度同向对齐
+ * ============================================================================== */
+.compact-mode .settings-table > div.row {
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+.compact-mode .settings-table .form-control {
+  height: calc(1.75rem + 2px) !important;
+  padding: 0.15rem 0.5rem !important;
+  font-size: 0.85rem !important;
+}
+.compact-mode .settings-table .setting-key-without-desc {
+  padding-top: 2px !important;
+  font-size: 0.88rem !important;
+}
+.compact-mode .settings-table .setting-key {
+  font-size: 0.88rem !important;
+}
+.compact-mode .settings-table .setting-value .form-group {
+  margin-bottom: 0 !important;
+}
+.compact-mode .main-sidebar .nav-sidebar .nav-link {
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+  font-size: 0.88rem !important;
+}
+.compact-mode .main-sidebar .nav-header {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  font-size: 0.75rem !important;
 }

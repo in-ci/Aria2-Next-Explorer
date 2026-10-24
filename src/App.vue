@@ -32,8 +32,8 @@
  * App.vue - 根布局组件
  * 处理视口高度自适应计算、紧凑模式切换与页面滚动流控制
  */
-import { ref, computed, defineAsyncComponent, onMounted, onUnmounted, watchEffect } from "vue";
-import { store, initStore, stopStore } from "./store";
+import { ref, computed, defineAsyncComponent, onMounted, onUnmounted, watch, watchEffect } from "vue";
+import { store, initStore, stopStore, saveOptions } from "./store";
 import { currentRoute } from "./router";
 import { useEventListener } from "./composables/useEventListener";
 import Navbar from "./components/Navbar.vue";
@@ -108,6 +108,18 @@ onMounted(() => {
   watchEffect(() => {
     document.documentElement.classList.toggle("compact-mode", Boolean(store.compactMode));
   });
+
+  // 紧凑模式双向响应式持久化监听：无论是从顶部导航栏开关切换还是从设置页面调整，均自动持久化保存
+  watch(
+    () => store.compactMode,
+    (val) => {
+      const isCompact = Boolean(val);
+      if (store.options.compactMode !== isCompact) {
+        store.options.compactMode = isCompact;
+        saveOptions(store.options);
+      }
+    }
+  );
 
   // 同步侧边栏折叠状态至 <body> 根节点，使 AdminLTE 的侧边栏动画与 content-wrapper 完美向左联动收起
   watchEffect(() => {
