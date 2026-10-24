@@ -226,7 +226,7 @@
                 :key="opt.key"
                 :option="opt"
                 v-model="taskOptions[opt.key]"
-                :default-value="globalOptions[opt.key] !== undefined ? globalOptions[opt.key] : opt.defaultValue"
+                :default-value="getOptionDefault(opt)"
               />
             </div>
           </div>
@@ -268,7 +268,7 @@
  */
 
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
-import { store, refreshData } from "../store";
+import { store, refreshData, fetchGlobalOptions } from "../store";
 import { navigate } from "../router";
 import { formatBytes } from "../utils/format";
 import SettingRow from "../components/SettingRow.vue";
@@ -309,8 +309,8 @@ const optionFilter = ref({
 
 /** 用户输入的任务局部个性化选项参数字典 */
 const taskOptions = ref({});
-/** 当前服务端全局默认选项缓存 */
-const globalOptions = ref({});
+/** 当前服务端全局生效选项缓存 (响应式绑定至 store.globalOptions) */
+const globalOptions = computed(() => store.globalOptions || {});
 
 /** 原版 AriaNg 新建任务 46 项配置及其分类 (category) 与基础/高级优先级 (priority) 映射表 */
 const TASK_OPTIONS_CONFIG = [
@@ -470,6 +470,19 @@ const visibleOptions = computed(() => {
       return optionFilter.value.advanced;
     });
 });
+
+/**
+ * 获取某个设置项的当前生效默认值（优先使用服务端 Aria2 返回的全局配置，如 dir、split 等）
+ * @param {object} opt 选项配置对象
+ * @returns {string | number | boolean}
+ */
+function getOptionDefault(opt) {
+  const g = globalOptions.value;
+  if (g && g[opt.key] !== undefined && g[opt.key] !== null && g[opt.key] !== "") {
+    return g[opt.key];
+  }
+  return opt.defaultValue !== undefined ? opt.defaultValue : "";
+}
 
 /** 计算属性：当前任务输入是否满足提交条件 */
 const isValid = computed(() => {
@@ -687,17 +700,11 @@ function applyQueryParams(q) {
 }
 
 /**
- * 从 Aria2 服务端拉取全局基础默认设置（如全局默认下载目录）
+ * 从 Aria2 服务端拉取全局基础生效配置（如全局默认下载目录 dir、并发连接数 split 等）
  */
 async function loadGlobalOptions() {
-  if (!store.client) return;
-  try {
-    const remote = await store.client.getGlobalOption();
-    if (remote) {
-      globalOptions.value = remote;
-    }
-  } catch (e) {
-    console.warn("Failed to load global options:", e);
+  if (store.client && store.rpcStatus === "Connected") {
+    await fetchGlobalOptions();
   }
 }
 
@@ -792,13 +799,26 @@ function fileToBase64(file) {
 }
 
 onMounted(() => {
-  loadGlobalOptions();
+  if (store.rpcStatus === "Connected") {
+    loadGlobalOptions();
+  }
   window.addEventListener("click", closeAllDropdowns);
 });
 
 onUnmounted(() => {
   window.removeEventListener("click", closeAllDropdowns);
 });
+
+// 监听 RPC 连接状态：当连接建立或网络重连成功时，立即同步获取服务端的真实全局配置
+watch(
+  () => store.rpcStatus,
+  (status) => {
+    if (status === "Connected") {
+      loadGlobalOptions();
+    }
+  },
+  { immediate: true }
+);
 
 // 监听路由参数变更，保证无论窗口首次打开还是后续二次拦截唤起，均能即时回填下载参数
 watch(

@@ -49,6 +49,9 @@ import AriaNgSettings from "./views/AriaNgSettings.vue";
 const isSidebarCollapsed = ref(false);
 const contentBodyRef = ref(null);
 
+// 在组件挂载前立即完成 Store 与 RPC 客户端初始化，确保子视图挂载时通信实例已就绪
+initStore();
+
 const currentViewComponent = computed(() => {
   const name = currentRoute.value.name;
   if (name === "task-list") return TaskList;
@@ -90,7 +93,6 @@ function updateContentHeight() {
 }
 
 onMounted(() => {
-  initStore();
   updateContentHeight();
   window.addEventListener("resize", updateContentHeight);
 

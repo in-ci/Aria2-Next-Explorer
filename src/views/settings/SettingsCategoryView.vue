@@ -72,12 +72,15 @@ const categoryInfo = computed(() => {
 });
 
 async function loadGlobalOptions() {
-  if (!store.client) return;
+  if (!store.client || store.rpcStatus !== "Connected") return;
   loading.value = true;
   isDirty.value = false;
 
   try {
     const remote = await store.client.getGlobalOption();
+    if (remote) {
+      store.globalOptions = remote;
+    }
     const values = {};
     const opts = categoryInfo.value?.options || [];
     opts.forEach((opt) => {
@@ -92,7 +95,7 @@ async function loadGlobalOptions() {
 }
 
 async function saveOptions() {
-  if (!store.client) return;
+  if (!store.client || store.rpcStatus !== "Connected") return;
   loading.value = true;
 
   try {
@@ -106,6 +109,7 @@ async function saveOptions() {
 
     if (Object.keys(toSave).length > 0) {
       await store.client.changeGlobalOption(toSave);
+      Object.assign(store.globalOptions, toSave);
       isDirty.value = false;
       alert(t("settings have taken effect") || "设置已成功保存并生效！");
     }
@@ -117,10 +121,21 @@ async function saveOptions() {
 }
 
 onMounted(() => {
-  loadGlobalOptions();
+  if (store.rpcStatus === "Connected") {
+    loadGlobalOptions();
+  }
 });
 
 watch(() => props.category, () => {
   loadGlobalOptions();
 });
+
+watch(
+  () => store.rpcStatus,
+  (status) => {
+    if (status === "Connected") {
+      loadGlobalOptions();
+    }
+  }
+);
 </script>

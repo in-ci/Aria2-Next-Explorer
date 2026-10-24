@@ -27,7 +27,7 @@
         <select
           v-else-if="option.type === 'option' && option.options"
           class="form-control"
-          :value="modelValue"
+          :value="selectedOptionValue"
           @change="$emit('update:modelValue', $event.target.value)"
         >
           <option
@@ -96,6 +96,13 @@ defineEmits(["update:modelValue"]);
 const booleanValue = computed(() => {
   const val = props.modelValue !== undefined && props.modelValue !== "" ? props.modelValue : props.defaultValue;
   return val === true || val === "true" ? "true" : "false";
+});
+
+const selectedOptionValue = computed(() => {
+  if (props.modelValue !== undefined && props.modelValue !== "") {
+    return String(props.modelValue);
+  }
+  return props.defaultValue !== undefined && props.defaultValue !== null ? String(props.defaultValue) : "";
 });
 
 function getOptionValue(item) {

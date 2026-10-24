@@ -158,6 +158,9 @@ export const store = reactive({
     sessionId: "",
   },
 
+  /** Aria2 服务端当前全局生效配置缓存 (如 dir、split、max-overall-download-limit 等) */
+  globalOptions: {},
+
   /** Aria2Client 通信实例 */
   client: null,
   /** 心跳轮询定时器引用 */
@@ -406,6 +409,9 @@ export function initStore() {
       store.client.getSessionInfo().then((s) => {
         store.serverInfo.sessionId = s.sessionId;
       }).catch(() => {});
+
+      // 成功连接后立即拉取服务端的全局配置（例如下载目录 dir、并发连接数 split 等）
+      fetchGlobalOptions();
     }
   });
 
@@ -445,6 +451,24 @@ export function initStore() {
 }
 
 /**
+ * 从 Aria2 服务端主动拉取全局生效选项并更新 store.globalOptions
+ * @returns {Promise<object>} 全局配置字典
+ */
+export async function fetchGlobalOptions() {
+  if (!store.client) return store.globalOptions;
+  try {
+    const opts = await store.client.getGlobalOption();
+    if (opts) {
+      store.globalOptions = opts;
+      return opts;
+    }
+  } catch (err) {
+    console.warn("[Store] Failed to fetch global options:", err);
+  }
+  return store.globalOptions;
+}
+
+/**
  * 切换活跃 RPC 服务器
  * @param {number} index 服务器索引
  */
@@ -453,6 +477,7 @@ export function switchRpcServer(index) {
   store.activeRpcIndex = index;
   store.selectedGids.clear();
   store.tasks = { active: [], waiting: [], stopped: [] };
+  store.globalOptions = {};
   store.speedHistory = markRaw(createInitialSpeedHistory());
 
   const target = currentRpc.value;
