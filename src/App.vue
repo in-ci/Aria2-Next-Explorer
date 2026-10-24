@@ -65,6 +65,7 @@ const currentViewProps = computed(() => {
   if (r.name === "task-list") return { filterType: r.filter };
   if (r.name === "task-detail") return { gid: r.params.gid };
   if (r.name === "settings-aria2") return { category: r.params.category };
+  if (r.name === "new-task") return { query: r.query };
   return {};
 });
 

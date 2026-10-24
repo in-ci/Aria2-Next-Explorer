@@ -283,7 +283,7 @@ export class UIManager {
    */
   async #openInTabOrWindow(index, webUiUrl) {
     const config = this.configService.get();
-    const tabs = await chrome.tabs.query({ url: index });
+    const tabs = await chrome.tabs.query({ url: [index, index + "*"] });
 
     if (tabs?.length > 0) {
       await chrome.windows.update(tabs[0].windowId, { focused: true });
