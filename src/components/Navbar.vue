@@ -210,7 +210,7 @@ const sortOrders = [
   { key: "name:asc", name: "By File Name", icon: "fa-sort-alpha-asc" },
   { key: "size:asc", name: "By File Size", icon: "fa-sort-numeric-asc" },
   { key: "percent:desc", name: "By Progress", icon: "fa-sort-amount-desc" },
-  { key: "remain:asc", name: "By Remaining Time", icon: "fa-sort-amount-asc" },
+  { key: "remain:asc", name: "By Remaining", icon: "fa-sort-amount-asc" },
   { key: "dspeed:desc", name: "By Download Speed", icon: "fa-sort-amount-desc" },
   { key: "uspeed:desc", name: "By Upload Speed", icon: "fa-sort-amount-desc" },
 ];

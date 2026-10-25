@@ -13,6 +13,7 @@ import { markRaw } from "vue";
 import { t } from "../i18n";
 import { store, currentRpc, rpcList, createInitialSpeedHistory } from "./state";
 import { refreshData } from "./polling";
+import { clearSavedCompletedTimes } from "./options";
 
 /**
  * 切换活跃 RPC 服务器
@@ -68,6 +69,7 @@ export async function clearAllStoppedTasks() {
   if (!store.client) return;
   try {
     await store.client.purgeDownloadResult();
+    clearSavedCompletedTimes();
   } catch (e) {}
   await refreshData(true);
 }

@@ -79,6 +79,49 @@ export function saveOptions(options) {
   }
 }
 
+/** 任务完成时间持久化 Storage Key */
+export const COMPLETED_TIMES_KEY = "Aria2Next.CompletedTimes";
+
+/**
+ * 从本地持久化缓存中加载已停止任务的完成时间戳字典
+ * @returns {Record<string, number>}
+ */
+export function loadSavedCompletedTimes() {
+  if (typeof localStorage === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(COMPLETED_TIMES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return {};
+}
+
+/**
+ * 将已停止任务的完成时间戳字典持久化保存至本地存储
+ * @param {Record<string, number>} times
+ */
+export function saveCompletedTimes(times) {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(COMPLETED_TIMES_KEY, JSON.stringify(times));
+  } catch (e) {}
+}
+
+/**
+ * 清空本地持久化的所有已停止任务完成时间记录
+ */
+export function clearSavedCompletedTimes() {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.removeItem(COMPLETED_TIMES_KEY);
+  } catch (e) {}
+}
+
+
 /**
  * 切换主题外观 (仅支持 经典 default 与 深色 dark)
  * @param {'default' | 'dark'} theme 目标主题

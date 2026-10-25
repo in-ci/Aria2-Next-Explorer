@@ -14,7 +14,7 @@ import { Aria2Client } from "../api/aria2";
 import { formatPageTitle } from "../utils/title";
 import { setLanguage } from "../i18n";
 import { store, currentRpc, taskMetaMap, processTaskItem, TASK_SUMMARY_KEYS } from "./state";
-import { applyTheme, applyAnimationEffects } from "./options";
+import { applyTheme, applyAnimationEffects, loadSavedCompletedTimes, saveCompletedTimes } from "./options";
 
 /** 轮询降频计数器与停止任务数量缓存 */
 let pollCycleCount = 0;
@@ -97,7 +97,7 @@ export async function refreshData(force = false) {
       // 5. 已停止任务：已停止任务不会变动速度，仅在数量改变、进入停止页面或每10次心跳降频同步
       const shouldFetchStopped = force || isViewingStopped || lastNumStopped !== numStopped || pollCycleCount % 10 === 0;
       const stoppedPromise = numStopped > 0 && shouldFetchStopped
-        ? store.client.tellStopped(0, 1000, TASK_SUMMARY_KEYS).catch(() => [])
+        ? store.client.tellStopped(-1, 1000, TASK_SUMMARY_KEYS).catch(() => [])
         : Promise.resolve(numStopped === 0 ? [] : null);
 
       const [active, waiting, stopped] = await Promise.all([
@@ -144,24 +144,64 @@ export async function refreshData(force = false) {
       }
       if (stopped !== null) {
         lastNumStopped = numStopped;
+        const savedTimes = loadSavedCompletedTimes();
+        let hasNewSavedTimes = false;
+        const now = Date.now();
+
         stopped.forEach((raw, idx) => {
           let meta = taskMetaMap.get(raw.gid);
+          let completedTime = 0;
+
+          // 1. 若内存 meta 中已记录完成时间，优先保持
+          if (meta && meta.completedTime) {
+            completedTime = meta.completedTime;
+          }
+          // 2. 若本地存储已持久化该任务完成时间，读取恢复
+          else if (savedTimes[raw.gid]) {
+            completedTime = savedTimes[raw.gid];
+          }
+          // 3. 首次发现该已停止任务：
+          // - 若先前在内存中已存在（即从 active 或 waiting 刚完成），取当前时间戳 now
+          // - 若初次连接/冷启动且无持久化记录，因为 tellStopped(-1) 是从最新到最旧排列：
+          //   idx = 0 为最新，赋予当前时间；后续任务依次递减 1 秒，确保精确复原相对时间差
+          else {
+            if (meta && meta.startTime > 0) {
+              completedTime = now;
+            } else {
+              completedTime = now - idx * 1000;
+            }
+            savedTimes[raw.gid] = completedTime;
+            hasNewSavedTimes = true;
+          }
+
           if (!meta) {
             meta = {
               startTime: 0,
-              completedTime: Date.now() - idx * 1000,
+              completedTime,
               activeOrder: 999999,
               waitingOrder: 999999,
               stoppedOrder: idx,
             };
             taskMetaMap.set(raw.gid, meta);
           } else {
-            if (!meta.completedTime) {
-              meta.completedTime = Date.now();
-            }
+            meta.completedTime = completedTime;
             meta.stoppedOrder = idx;
           }
         });
+
+        // 仅保留当前依然存在的已停止任务的时间戳记录，防止历史 GID 持续堆积占用存储
+        let pruned = false;
+        const stoppedGidSet = new Set(stopped.map((t) => t.gid));
+        for (const gid in savedTimes) {
+          if (!stoppedGidSet.has(gid)) {
+            delete savedTimes[gid];
+            pruned = true;
+          }
+        }
+        if (hasNewSavedTimes || pruned) {
+          saveCompletedTimes(savedTimes);
+        }
+
         store.tasks.stopped = stopped.map(processTaskItem);
       }
 
