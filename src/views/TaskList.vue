@@ -500,12 +500,12 @@ function getSortIcon(field) {
 </script>
 
 <style scoped>
-/* 紧凑行高与精炼布局，彻底消除下载时列高臃肿 */
+/* 标准行高与舒适排版 */
 :deep(.task-table-body > .row),
 .task-table-body > .row {
-  padding-top: 5px !important;
-  padding-bottom: 5px !important;
-  min-height: 38px;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  min-height: 42px;
 }
 
 :deep(.task-table .task-table-body .row label),
@@ -519,8 +519,8 @@ function getSortIcon(field) {
 }
 
 .task-col-name .task-name {
-  font-size: 0.88rem;
-  line-height: 1.3;
+  font-size: 0.91rem;
+  line-height: 1.35;
 }
 
 .task-col-progress {
@@ -597,31 +597,43 @@ function getSortIcon(field) {
 .task-table .task-action-btn + .task-action-btn {
   border-left: none !important;
 }
-/* 紧凑模式下任务列表条目尺寸适度收敛，与侧边栏紧凑高度同向一致 */
+
+/* 紧凑模式优化：精炼紧凑且留有舒展呼吸感，消除过度拥挤感 */
 .task-table .row.compact-list {
-  padding-top: 3px !important;
-  padding-bottom: 3px !important;
-  min-height: 34px !important;
+  padding-top: 4.5px !important;
+  padding-bottom: 4.5px !important;
+  min-height: 38px !important;
 }
 
 .compact-list .task-name {
-  font-size: 0.82rem !important;
+  font-size: 0.88rem !important;
+  line-height: 1.35 !important;
 }
 
 .compact-list .task-progress-bar {
-  height: 9px !important;
+  height: 11px !important;
+}
+
+.compact-list .task-progress-text {
+  font-size: 9px !important;
+  line-height: 11px !important;
+}
+
+.compact-list .task-progress-sub {
+  margin-top: 1.5px !important;
+  font-size: 10.5px !important;
 }
 
 .compact-list :deep(.task-hover-actions),
 .compact-list .task-hover-actions {
-  height: 24px !important;
+  height: 27px !important;
 }
 
 .compact-list :deep(.task-action-btn),
 .compact-list .task-action-btn {
-  height: 20px !important;
-  min-width: 24px !important;
-  padding: 0 5px !important;
-  font-size: 11px !important;
+  height: 23px !important;
+  min-width: 28px !important;
+  padding: 0 6px !important;
+  font-size: 11.5px !important;
 }
 </style>
