@@ -7,7 +7,7 @@
 **基于现代化 Aria2-Next 核心构建的浏览器全能下载扩展**
 
 [![许可证](https://img.shields.io/badge/license-BSD--3--Clause-green.svg)](LICENSE)
-[![版本](https://img.shields.io/badge/version-3.0.9.1-gold.svg)](manifest.json)
+[![版本](https://img.shields.io/badge/version-3.0.9.2-gold.svg)](manifest.json)
 [![Aria2-Next](https://img.shields.io/badge/Engine-aria2--next-blue.svg)](https://github.com/AnInsomniacy/aria2-next)
 
 [简体中文](#) | [English](./README_EN.md)
@@ -67,15 +67,15 @@
    ```
 3. **打包产物**（输出于 `dist/` 目录）：
    - `dist/Aria2-Next-Explorer-Edge/`：解压后的完整扩展目录，可直接加载开发测试。
-   - `dist/Aria2-Next-Explorer-Edge-v3.0.9.1.zip`：发布压缩包，可直接用于归档或提交扩展商店。
-   - `dist/Aria2-Next-Explorer-Edge-v3.0.9.1.crx`：离线安装包，可直接拖拽至 Edge 浏览器安装。
+   - `dist/Aria2-Next-Explorer-Edge-v3.0.9.2.zip`：发布压缩包，可直接用于归档或提交扩展商店。
+   - `dist/Aria2-Next-Explorer-Edge-v3.0.9.2.crx`：离线安装包，可直接拖拽至 Edge 浏览器安装。
 
 ### 💡 在 Edge 浏览器中安装测试
 
 - **方法 A（推荐，CRX 拖拽一键安装）**：
   1. 打开 Edge 浏览器，访问 `edge://extensions/`；
   2. 开启页面左侧底部的 **【开发人员模式】** 开关；
-  3. 将生成的 `dist/Aria2-Next-Explorer-Edge-v3.0.9.1.crx` 直接拖拽进该网页即可完成安装！
+  3. 将生成的 `dist/Aria2-Next-Explorer-Edge-v3.0.9.2.crx` 直接拖拽进该网页即可完成安装！
 - **方法 B（解压目录直接加载）**：
   1. 打开 Edge 浏览器，访问 `edge://extensions/`；
   2. 开启左侧 **【开发人员模式】** 开关；
