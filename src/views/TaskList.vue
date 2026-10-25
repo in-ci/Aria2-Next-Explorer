@@ -260,6 +260,15 @@ const rawTasks = computed(() => {
 });
 
 /**
+ * 判定任务是否为下载后结束的数据（即非正在下载、暂停、等待）
+ * @param {object} t 任务对象
+ * @returns {boolean}
+ */
+function isFinishedTask(t) {
+  return t && t.status !== "active" && t.status !== "waiting" && t.status !== "paused";
+}
+
+/**
  * 计算属性：结合搜索关键词与用户自定义排序规则，计算出完整的排序列
  */
 const displayedTasks = computed(() => {
@@ -279,9 +288,10 @@ const displayedTasks = computed(() => {
   const isAsc = direction === "asc";
 
   list.sort((a, b) => {
-    // 默认排序：按照下载时间排序
-    // 正在下载的任务按下载开始时间顺序排序 (先开始的在前)；
-    // 已结束的任务按下载结束时间逆序排序 (后结束/最新的在前)
+    // 默认排序：
+    // 1. 正在下载的任务按下载开始时间顺序排序 (先开始的在前)；
+    // 2. 等待/暂停任务按等待队列顺序排序；
+    // 3. 下载结束后的数据（非正在下载、暂停、等待）严格按照下载完成时间降序排序 (后结束/最新完成的在前)
     if (field === "default") {
       const getPriority = (t) => {
         if (t.status === "active") return 0;
@@ -307,23 +317,26 @@ const displayedTasks = computed(() => {
           : (b.startTime || 0) - (a.startTime || 0);
       }
 
-      // 同为已结束/已停止的任务 (complete / error / removed): 逆序排序（后结束下载的排在前面）
-      if (prioA === 2) {
-        const orderA = a.stoppedOrder !== undefined ? a.stoppedOrder : 0;
-        const orderB = b.stoppedOrder !== undefined ? b.stoppedOrder : 0;
-        // stoppedOrder 中 0 是最新完成的任务，因此 order 越小越新，升序即为逆序完成时间
-        if (orderA !== orderB) {
-          return isAsc ? orderA - orderB : orderB - orderA;
-        }
-        return isAsc
-          ? (b.completedTime || 0) - (a.completedTime || 0)
-          : (a.completedTime || 0) - (b.completedTime || 0);
+      // 同为等待/暂停任务 (waiting / paused): FIFO 等待队列顺序
+      if (prioA === 1) {
+        const orderA = a.waitingOrder !== undefined ? a.waitingOrder : 0;
+        const orderB = b.waitingOrder !== undefined ? b.waitingOrder : 0;
+        return isAsc ? orderA - orderB : orderB - orderA;
       }
 
-      // 等待中任务 (waiting / paused): FIFO 等待队列顺序
-      const orderA = a.waitingOrder !== undefined ? a.waitingOrder : 0;
-      const orderB = b.waitingOrder !== undefined ? b.waitingOrder : 0;
-      return isAsc ? orderA - orderB : orderB - orderA;
+      // 同为下载结束后的任务 (complete / error / removed): 按照下载完成时间排序
+      if (prioA === 2) {
+        const timeA = a.completedTime || 0;
+        const timeB = b.completedTime || 0;
+        // 完成时间不同的任务：时间戳越大越新。在默认升序下，最新完成的排在最前面
+        if (timeA !== timeB) {
+          return isAsc ? timeB - timeA : timeA - timeB;
+        }
+        // 完成时间相同时，按停止序号排（stoppedOrder 中 0 为最新停止）
+        const orderA = a.stoppedOrder !== undefined ? a.stoppedOrder : 999999;
+        const orderB = b.stoppedOrder !== undefined ? b.stoppedOrder : 999999;
+        return isAsc ? orderA - orderB : orderB - orderA;
+      }
     }
 
     let res = 0;
@@ -340,6 +353,24 @@ const displayedTasks = computed(() => {
     } else if (field === "uspeed") {
       res = a.uploadSpeed - b.uploadSpeed;
     }
+
+    // 若按指定字段比较出现平局（如已结束任务的速度均为 0、进度均为 100%、剩余时间均为 -1 等）
+    // 对于下载结束后的任务，自动以“下载完成时间”作为第二排序依据（最新完成在前）
+    if (res === 0) {
+      const isFinA = isFinishedTask(a);
+      const isFinB = isFinishedTask(b);
+      if (isFinA && isFinB) {
+        const timeA = a.completedTime || 0;
+        const timeB = b.completedTime || 0;
+        if (timeA !== timeB) {
+          return timeB - timeA;
+        }
+        const orderA = a.stoppedOrder !== undefined ? a.stoppedOrder : 999999;
+        const orderB = b.stoppedOrder !== undefined ? b.stoppedOrder : 999999;
+        return orderA - orderB;
+      }
+    }
+
     return isAsc ? res : -res;
   });
 

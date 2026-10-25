@@ -33,7 +33,7 @@
  * 处理视口高度自适应计算、紧凑模式切换与页面滚动流控制
  */
 import { ref, computed, defineAsyncComponent, onMounted, onUnmounted, watch, watchEffect } from "vue";
-import { store, initStore, stopStore, saveOptions } from "./store";
+import { store, initStore, stopStore, saveOptions, refreshData } from "./store";
 import { currentRoute } from "./router";
 import { useEventListener } from "./composables/useEventListener";
 import Navbar from "./components/Navbar.vue";
@@ -118,6 +118,25 @@ onMounted(() => {
         store.options.compactMode = isCompact;
         saveOptions(store.options);
       }
+    }
+  );
+
+  // 排序规则双向响应式持久化监听：无论是从顶部导航栏下拉菜单切换还是点击表头排序，均自动持久化保存
+  watch(
+    () => store.displayOrder,
+    (val) => {
+      if (val && store.options.displayOrder !== val) {
+        store.options.displayOrder = val;
+        saveOptions(store.options);
+      }
+    }
+  );
+
+  // 路由页面切换时，主动触发即时刷新，保证新页面数据与排序规则立即同步呈现
+  watch(
+    () => currentRoute.value.path,
+    () => {
+      refreshData(true);
     }
   );
 
